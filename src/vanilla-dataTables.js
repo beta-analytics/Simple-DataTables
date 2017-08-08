@@ -4,489 +4,226 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.2.3
+ * Version: 1.2.4
  *
  */
 (function(root, factory) {
-	var plugin = 'DataTable';
+	var plugin = "DataTable";
 
-	if (typeof define === 'function' && define.amd) {
+	if (typeof define === "function" && define.amd) {
 		define([], factory(plugin));
-	} else if (typeof exports === 'object') {
+	} else if (typeof exports === "object") {
 		module.exports = factory(plugin);
 	} else {
 		root[plugin] = factory(plugin);
 	}
-}(this, function(plugin) {
-	'use strict';
-
+})(this, function(plugin) {
+	
+	"use strict";
+	
+	var win = window,
+		doc = document,
+		body = doc.body;
 
 	/**
-	 * Helpers
+	 * Object.assign polyfill
+	 * @param  {Object} target
+	 * @param  {Object} args
+	 * @return {Object}
+	 */
+	var extend = function(r, t) {
+		for (var e = Object(r), n = 1; n < arguments.length; n++) {
+			var a = arguments[n];
+			if (null != a)
+				for (var o in a)
+					Object.prototype.hasOwnProperty.call(a, o) && (e[o] = a[o]);
+		}
+		return e;
+	};
+
+	/**
+	 * Iterator helper
+	 * @param  {(Array|Object)}   arr Any object, array or array-like collection.
+	 * @param  {Function} f   The callback function
+	 * @param  {Object}   s      Change the value of this
+	 * @return {Void}
+	 */
+	var each = function(arr, fn, s) {
+		if ("[object Object]" === Object.prototype.toString.call(arr)) {
+			for (var d in arr) {
+				if (Object.prototype.hasOwnProperty.call(arr, d)) {
+					fn.call(s, d, arr[d]);
+				}
+			}
+		} else {
+			for (var e = 0, f = arr.length; e < f; e++) {
+				fn.call(s, e, arr[e]);
+			}
+		}
+	};
+	
+	/**
+	 * Add event listener to target
+	 * @param  {Object} el
+	 * @param  {String} e
+	 * @param  {Function} fn
+	 */
+	var on = function(el, e, fn) {
+		el.addEventListener(e, fn, false);
+	};	
+
+	/**
+	 * Create DOM element node
+	 * @param  {String}   a nodeName
+	 * @param  {Object}   b properties and attributes
+	 * @return {Object}
+	 */
+	var createElement = function(a, b) {
+		var d = doc.createElement(a);
+		if (b && "object" == typeof b) {
+			var e;
+			for (e in b) {
+				if ("html" === e) {
+					d.innerHTML = b[e];
+				} else {
+					d.setAttribute(e, b[e]);
+				}
+			}
+		}
+		return d;
+	};
+	
+	/**
+	 * Check for valid JSON string
+	 * @param  {String}   str
+	 * @return {Boolean|Array|Object}
+	 */	
+	var isJson = function(str) {
+		var t = !1;
+		try {
+			t = JSON.parse(str)
+		} catch (str) {
+			return !1
+		}
+		return !(null === t || !Array.isArray(t) && "[object Object]" !== Object.prototype.toString.call(t)) && t
+	};
+	
+	var flush = function(el, ie) {
+		if (el instanceof NodeList) {
+			each(el, function(i, e) {
+				flush(e, ie);
+			});
+		} else {
+			if (ie) {
+				while (el.hasChildNodes()) {
+					el.removeChild(el.firstChild);
+				}
+			} else {
+				el.innerHTML = "";
+			}
+		}
+	};
+	
+	/**
+	 * Create button helper
+	 * @param  {String}   c
+	 * @param  {Number}   p
+	 * @param  {String}   t
+	 * @return {Object}
+	 */		
+	var button = function(c, p, t) {
+		return createElement("li", {
+			class: c,
+			html: '<a href="#" data-page="' + p + '">' + t + "</a>"
+		});
+	};	
+
+	/**
+	 * classList shim
 	 * @type {Object}
 	 */
-	var util = {
-		extend: function(src, props) {
-			var p;
-			for (p in props) {
-				if (props.hasOwnProperty(p)) {
-					if ("[object Object]" === Object.prototype.toString.call(src[p])) {
-						util.extend(src[p], props[p]);
-					} else {
-						src[p] = props[p];
-					}
-				}
-			}
-			return src;
+	var classList = {
+		add: function(s, a) {
+			classList.contains(s, a) ||
+				(s.classList
+					? s.classList.add(a)
+					: (s.className = s.className.trim() + " " + a));
 		},
-		each: function(a, b, c) {
-			if ("[object Object]" === Object.prototype.toString.call(a)) {
-				for (var d in a) { if (Object.prototype.hasOwnProperty.call(a, d)) { b.call(c, d, a[d], a); } }
-			} else {
-				for (var e = 0, f = a.length; e < f; e++) { b.call(c, e, a[e], a); }
-			}
+		remove: function(s, a) {
+			classList.contains(s, a) &&
+				(s.classList
+					? s.classList.remove(a)
+					: (s.className = s.className.replace(
+							new RegExp("(^|\\s)" + a.split(" ").join("|") + "(\\s|$)", "gi"),
+							" "
+						)));
 		},
-		createElement: function(a, b) {
-			var c = document,
-				d = c.createElement(a);
-			if (b && "object" == typeof b) {
-				var e;
-				for (e in b) {
-					if ("html" === e) {
-						d.innerHTML = b[e];
-					} else if ("text" === e) {
-						d.appendChild(c.createTextNode(b[e]));
-					} else {
-						d.setAttribute(e, b[e]);
-					}
-				}
-			}
-			return d;
-		},
-		createFragment: function() {
-			return document.createDocumentFragment();
-		},
-		hasClass: function(a, b) {
-			return a.classList ? a.classList.contains(b) : !!a.className && !!a.className.match(new RegExp("(\\s|^)" + b + "(\\s|$)"));
-		},
-		addClass: function(a, b) {
-			if (!util.hasClass(a, b)) {
-				if (a.classList) {
-					a.classList.add(b);
-				} else {
-					a.className = a.className.trim() + " " + b;
-				}
-			}
-		},
-		removeClass: function(a, b) {
-			if (util.hasClass(a, b)) {
-				if (a.classList) {
-					a.classList.remove(b);
-				} else {
-					a.className = a.className.replace(new RegExp("(^|\\s)" + b.split(" ").join("|") + "(\\s|$)", "gi"), " ");
-				}
-			}
-		},
-		append: function(p, e) {
-			return p && e && p.appendChild(e);
-		},
-		closest: function(el, fn) {
-			return el && el !== document.body && (fn(el) ? el : util.closest(el.parentNode, fn));
-		},
-		on: function(e, type, callback) {
-			e.addEventListener(type, callback, false);
-		},
-		off: function(e, type, callback) {
-			e.removeEventListener(type, callback);
-		},
-		isObject: function(a) {
-			return "[object Object]" === Object.prototype.toString.call(a);
-		},
-		isArray: function(a) {
-			return "[object Array]" === Object.prototype.toString.call(a);
-		},
-		isInt: function(val) {
-			return !isNaN(val);
-		},
-		isJson: function(str) {
-			var json = false;
-			try { json = JSON.parse(str); } catch (e) { return false; }
-
-			if (json !== null && (util.isArray(json) || util.isObject(json))) {
-				return json;
-			}
-
-			return false;
-		},
-		rect: function(el) {
-			var win = window;
-			var doc = document;
-			var body = doc.body;
-			var rect = el.getBoundingClientRect();
-			var offsetX = win.pageXOffset !== undefined ? win.pageXOffset : (doc.documentElement || body.parentNode || body).scrollLeft;
-			var offsetY = win.pageYOffset !== undefined ? win.pageYOffset : (doc.documentElement || body.parentNode || body).scrollTop;
-
-			return {
-				bottom: rect.bottom + offsetY,
-				height: rect.height,
-				left: rect.left + offsetX,
-				right: rect.right + offsetX,
-				top: rect.top + offsetY,
-				width: rect.width
-			};
-		},
-		preventDefault: function(e) {
-			e = e || window.event;
-			if (e.preventDefault) {
-				return e.preventDefault();
-			}
-		},
-		includes: function(a, b) {
-			return a.indexOf(b) > -1;
-		},
-		button: function(c, p, t) {
-			return util.createElement('li', {
-				class: c,
-				html: '<a href="#" data-page="' + p + '">' + t + '</a>'
-			});
-		},
-		flush: function(el, ie) {
-			if ( el instanceof NodeList ) {
-				util.each(el, function(i,e) {
-					util.flush(e, ie);
-				});
-			} else {
-				if (ie) {
-					while (el.hasChildNodes()) {
-						el.removeChild(el.firstChild);
-					}
-				} else {
-					el.innerHTML = '';
-				}
-			}
-		}
+		contains: function(s, a) {
+			if (s)
+				return s.classList
+					? s.classList.contains(a)
+					: !!s.className &&
+							!!s.className.match(new RegExp("(\\s|^)" + a + "(\\s|$)"));
+		}		
 	};
 
-	/**
-	 * Construct the layout
-	 * @return {[type]} [description]
-	 */
-	var build = function() {
-		var o = this.options;
-		var template = "";
-
-		// Convert data to HTML
-		if (o.data) {
-			dataToTable.call(this);
-		}
-
-		// Store references
-		this.body = this.table.tBodies[0];
-		this.head = this.table.tHead;
-		this.foot = this.table.tFoot;
-
-		if ( !this.body ) {
-			this.body = util.createElement("tbody");
-
-			this.table.appendChild(this.body);
-		}
-
-		this.hasRows = this.body.rows.length > 0;
-
-		// Make a tHead if there isn't one (fixes #8)
-		if ( !this.head ) {
-			var h = util.createElement("thead");
-			var t = util.createElement("tr");
-
-			if ( this.hasRows ) {
-				util.each(this.body.rows[0].cells, function(i, cell) {
-					util.append(t, util.createElement("th"));
-				});
-
-				util.append(h, t);
-			}
-
-			this.head = h;
-
-			this.table.insertBefore(this.head, this.body);
-		}
-
-		this.hasHeadings = this.head.rows.length > 0;
-
-		if ( this.hasHeadings ) {
-			this.header = this.head.rows[0];
-			this.headings = [].slice.call(this.header.cells);
-		}
-
-		// Header
-		if ( !o.header ) {
-			if ( this.head ) {
-				this.table.removeChild(this.table.tHead);
-			}
-		}
-
-		// Footer
-		if ( o.footer ) {
-			if ( this.head && !this.foot) {
-				this.foot = util.createElement('tfoot', {
-					html: this.head.innerHTML
-				});
-				this.table.appendChild(this.foot);
-			}
-		} else {
-			if ( this.foot ) {
-				this.table.removeChild(this.table.tFoot);
-			}
-		}
-
-
-		// Build
-		this.wrapper = util.createElement('div', {
-			class: 'dataTable-wrapper',
-		});
-
-		// Template for custom layouts
-		template += "<div class='dataTable-top'>";
-		template += o.layout.top;
-		template += "</div>";
-		template += "<div class='dataTable-container'></div>";
-		template += "<div class='dataTable-bottom'>";
-		template += o.layout.bottom;
-		template += "</div>";
-
-		// Info placement
-		template = template.replace("{info}", "<div class='dataTable-info'></div>");
-
-		// Per Page Select
-		if (o.perPageSelect) {
-			var wrap = "<div class='dataTable-dropdown'><label>";
-			wrap += o.labels.perPage;
-			wrap += "</label></div>";
-
-			// Create the select
-			var select = util.createElement('select', {
-				class: 'dataTable-selector'
-			});
-
-			// Create the options
-			util.each(o.perPageSelect, function(i, val) {
-				var selected = val === o.perPage;
-				var option = new Option(val, val, selected, selected);
-				select.add(option);
-			});
-
-			// Custom label
-			wrap = wrap.replace("{select}", select.outerHTML);
-
-			// Selector placement
-			template = template.replace("{select}", wrap);
-		} else {
-			template = template.replace("{select}", "");
-		}
-
-		// Searchable
-		if (o.searchable) {
-			var form = "<div class='dataTable-search'><input class='dataTable-input' placeholder='"+o.labels.placeholder+"' type='text'></div>";
-
-			// Search input placement
-			template = template.replace("{search}", form);
-		} else {
-			template = template.replace("{search}", "");
-		}
-
-		if ( this.hasHeadings ) {
-			// Sortable
-			util.each(this.headings, function(i, th) {
-				th.originalCellIndex = th.cellIndex;
-				if (o.sortable) {
-					var link = util.createElement('a', {
-						href: '#',
-						class: 'dataTable-sorter',
-						html: th.innerHTML
-					});
-					th.innerHTML = '';
-					util.append(th, link);
-				}
-			});
-		}
-
-		// Add table class
-		util.addClass(this.table, 'dataTable-table');
-
-		// Paginator
-		var w = util.createElement('div', {
-			class: 'dataTable-pagination'
-		});
-		var paginator = util.createElement('ul');
-		util.append(w, paginator);
-
-		// Pager(s) placement
-		template = template.replace(/\{pager\}/g, w.outerHTML);
-
-		this.wrapper.innerHTML = template;
-
-		this.container = this.wrapper.querySelector(".dataTable-container");
-
-		this.pagers = this.wrapper.querySelectorAll(".dataTable-pagination");
-
-		this.label = this.wrapper.querySelector(".dataTable-info");
-
-		// Insert in to DOM tree
-		this.table.parentNode.replaceChild(this.wrapper, this.table);
-		this.container.appendChild(this.table);
-
-		// Store the table dimensions
-		this.rect = util.rect(this.table);
-
-		// Convert rows to array for processing
-		this.rows = [].slice.call(this.body.rows);
-		this.activeRows = this.rows.slice();
-		this.activeHeadings = this.headings.slice();
-
-		// Update
-		this.update();
-
-
-		// Fixed height
-		if (o.fixedHeight) {
-			fixHeight.call(this);
-		}
-
-		if ( this.options.fixedColumns ) {
-			this.fixColumns();
-		}
-
-		setClassNames.call(this);
-		addEventListeners.call(this);
-	};
-
-	/**
-	 * Set classNames required
-	 */
-	var setClassNames = function() {
-		var o = this.options;
-		if ( !o.header ) {
-			util.addClass(this.wrapper, 'no-header'); }
-
-		if ( !o.footer ) {
-			util.addClass(this.wrapper, 'no-footer'); }
-
-		if ( o.sortable ) {
-			util.addClass(this.wrapper, 'sortable'); }
-
-		if (o.searchable) {
-			util.addClass(this.wrapper, 'searchable'); }
-
-		if (o.fixedHeight) {
-			util.addClass(this.wrapper, 'fixed-height'); }
-
-		if ( o.fixedColumns ) {
-			util.addClass(this.wrapper, 'fixed-columns'); }
-	};
-
-	/**
-	 * Attach the required event listeners
-	 */
-	var addEventListeners = function() {
-		var that = this, o = that.options;
-
-		// Per page selector
-		if ( o.perPageSelect ) {
-			var selector = that.wrapper.querySelector(".dataTable-selector");
-			if ( selector ) {
-				// Change per page
-				util.on(selector, 'change', function(e) {
-					o.perPage = parseInt(this.value, 10);
-					that.update();
-
-					if (o.fixedHeight) {
-						fixHeight.call(that);
-					}
-
-					that.emit('datatable.perpage');
-				});
-			}
-		}
-
-		// Search input
-		if ( o.searchable ) {
-			that.input = that.wrapper.querySelector(".dataTable-input");
-			if ( that.input ) {
-				util.on(that.input, 'keyup', function(e) {
-					that.search(this.value);
-				});
-			}
-		}
-
-		// Pager(s)
-		util.on(that.wrapper, 'click', function(e) {
-			var t = e.target;
-			if (t.nodeName.toLowerCase() === 'a' && t.hasAttribute('data-page')) {
-				util.preventDefault(e);
-				that.page(t.getAttribute('data-page'));
-			}
-		});
-
-		// Sort items
-		if ( o.sortable ) {
-			util.on(that.head, 'click', function(e) {
-				e = e || window.event;
-				var target = e.target;
-
-				if (target.nodeName.toLowerCase() === 'a') {
-					if (util.hasClass(target, 'dataTable-sorter')) {
-						util.preventDefault(e);
-						that.sortColumn(that.activeHeadings.indexOf(target.parentNode) + 1);
-					}
-				}
-			});
-		}
-	};
 
 	// Sort the rows into pages
 	var paginate = function() {
-		var perPage = this.options.perPage, rows = this.activeRows;
+		var perPage = this.options.perPage,
+			rows = this.activeRows;
 
-		if ( this.searching ) {
+		if (this.searching) {
 			rows = [];
 
-			util.each(this.searchData, function(i, index) {
-				rows.push(this.activeRows[index]);
-			}, this);
+			each(
+				this.searchData,
+				function(i, index) {
+					rows.push(this.activeRows[index]);
+				},
+				this
+			);
 		}
 
 		// Check for hidden columns
-		this.pages = rows.map(function(tr, i) {
-			return i % perPage === 0 ? rows.slice(i, i + perPage) : null;
-		}).filter(function(page) {
-			return page;
-		});
+		this.pages = rows
+			.map(function(tr, i) {
+				return i % perPage === 0 ? rows.slice(i, i + perPage) : null;
+			})
+			.filter(function(page) {
+				return page;
+			});
 
 		this.totalPages = this.lastPage = this.pages.length;
 	};
 
 	// Render a page
 	var render = function() {
-
-		if ( this.hasRows && this.totalPages) {
-
+		if (this.hasRows && this.totalPages) {
 			if (this.currentPage > this.totalPages) {
 				this.currentPage = 1;
 			}
 
 			// Use a fragment to limit touching the DOM
 			var index = this.currentPage - 1,
-				frag = util.createFragment();
+				frag = doc.createDocumentFragment();
 
-			util.flush(this.header, this.isIE);
-			util.each(this.activeHeadings, function(i, th) {
-				this.header.appendChild(th);
-			}, this);
+			flush(this.header, this.isIE);
+			each(
+				this.activeHeadings,
+				function(i, th) {
+					this.header.appendChild(th);
+				},
+				this
+			);
 
-			util.each(this.pages[index], function(i, row) {
-				frag.appendChild(row);
-			}, this);
-
+			each(
+				this.pages[index],
+				function(i, row) {
+					frag.appendChild(row);
+				},
+				this
+			);
 
 			this.clear(frag);
 
@@ -517,16 +254,16 @@
 			items = !!this.searching ? this.searchData.length : this.rows.length;
 		}
 
-		if ( this.label && this.options.labels.info.length ) {
-
+		if (this.label && this.options.labels.info.length) {
 			// CUSTOM LABELS
-			var string = this.options.labels.info.replace("{start}", f)
-												.replace("{end}", t)
-												.replace("{page}", this.currentPage)
-												.replace("{pages}", this.totalPages)
-												.replace("{rows}", items);
+			var string = this.options.labels.info
+				.replace("{start}", f)
+				.replace("{end}", t)
+				.replace("{page}", this.currentPage)
+				.replace("{pages}", this.totalPages)
+				.replace("{rows}", items);
 
-			this.label.innerHTML = items  ? string : "";
+			this.label.innerHTML = items ? string : "";
 		}
 
 		if (this.options.fixedHeight && this.currentPage == 1) {
@@ -538,57 +275,60 @@
 	 * Render the pager(s)
 	 */
 	var renderPager = function() {
-
-		util.flush(this.pagers, this.isIE);
+		flush(this.pagers, this.isIE);
 
 		if (this.totalPages > 1) {
-
-			var c = 'pager',
-				frag = util.createFragment(),
+			var c = "pager",
+				frag = doc.createDocumentFragment(),
 				prev = this.onFirstPage ? 1 : this.currentPage - 1,
 				next = this.onlastPage ? this.totalPages : this.currentPage + 1;
 
 			// first button
 			if (this.options.firstLast) {
-				util.append(frag, util.button(c, 1, this.options.firstText));
+				frag.appendChild(button(c, 1, this.options.firstText));
 			}
 
 			// prev button
 			if (this.options.nextPrev) {
-				util.append(frag, util.button(c, prev, this.options.prevText));
+				frag.appendChild(button(c, prev, this.options.prevText));
 			}
 
 			var pager = this.links;
 
 			// truncate the links
 			if (this.options.truncatePager) {
-				pager = truncate(this.links, this.currentPage, this.pages.length, this.options.pagerDelta);
+				pager = truncate(
+					this.links,
+					this.currentPage,
+					this.pages.length,
+					this.options.pagerDelta
+				);
 			}
 
 			// active page link
-			util.addClass(this.links[this.currentPage - 1], 'active');
+			classList.add(this.links[this.currentPage - 1], "active");
 
 			// append the links
-			util.each(pager, function(i, p) {
-				util.removeClass(p, 'active');
-				util.append(frag, p);
+			each(pager, function(i, p) {
+				classList.remove(p, "active");
+				frag.appendChild(p);
 			});
 
-			util.addClass(this.links[this.currentPage - 1], 'active');
+			classList.add(this.links[this.currentPage - 1], "active");
 
 			// next button
 			if (this.options.nextPrev) {
-				util.append(frag, util.button(c, next, this.options.nextText));
+				frag.appendChild(button(c, next, this.options.nextText));
 			}
 
 			// first button
 			if (this.options.firstLast) {
-				util.append(frag, util.button(c, this.totalPages, this.options.lastText));
+				frag.appendChild(button(c, this.totalPages, this.options.lastText));
 			}
 
 			// We may have more than one pager
-			util.each(this.pagers, function(i,pager) {
-				util.append(pager, frag.cloneNode(true));
+			each(this.pagers, function(i, pager) {
+				pager.appendChild(frag.cloneNode(true));
 			});
 		}
 	};
@@ -607,7 +347,7 @@
 				d = -1;
 			}
 		}
-		for (var e = !0; e;) {
+		for (var e = !0; e; ) {
 			e = !1;
 			for (var f = c; f != d; f += b) {
 				if (a[f + b] && a[f].value > a[f + b].value) {
@@ -628,8 +368,8 @@
 	 */
 	var fixHeight = function() {
 		this.container.style.height = null;
-		this.rect = util.rect(this.container);
-		this.container.style.height = this.rect.height + 'px';
+		this.rect = this.container.getBoundingClientRect();
+		this.container.style.height = this.rect.height + "px";
 	};
 
 	/**
@@ -637,7 +377,8 @@
 	 */
 	var truncate = function(a, b, c, d) {
 		d = d || 2;
-		var j, e = 2 * d,
+		var j,
+			e = 2 * d,
 			f = b - d,
 			g = b + d,
 			h = [],
@@ -648,19 +389,19 @@
 			f = c - (2 + e);
 		}
 		for (var k = 1; k <= c; k++) {
-			if (1 == k || k == c || k >= f && k <= g) {
+			if (1 == k || k == c || (k >= f && k <= g)) {
 				var l = a[k - 1];
-				util.removeClass(l, "active");
+				classList.remove(l, "active");
 				h.push(l);
 			}
 		}
-		util.each(h, function(b, c) {
+		each(h, function(b, c) {
 			var d = c.children[0].getAttribute("data-page");
 			if (j) {
 				var e = j.children[0].getAttribute("data-page");
 				if (d - e == 2) i.push(a[e]);
 				else if (d - e != 1) {
-					var f = util.createElement("li", {
+					var f = createElement("li", {
 						class: "ellipsis",
 						html: '<a href="#">&hellip;</a>'
 					});
@@ -675,7 +416,7 @@
 	};
 
 	/**
-	 * Parse data to HTML
+	 * Parse data to HTML table
 	 */
 	var dataToTable = function(data) {
 		var thead = false,
@@ -684,10 +425,10 @@
 		data = data || this.options.data;
 
 		if (data.headings) {
-			thead = util.createElement('thead');
-			var tr = util.createElement('tr');
-			util.each(data.headings, function(i, col) {
-				var td = util.createElement('th', {
+			thead = createElement("thead");
+			var tr = createElement("tr");
+			each(data.headings, function(i, col) {
+				var td = createElement("th", {
 					html: col
 				});
 				tr.appendChild(td);
@@ -697,16 +438,18 @@
 		}
 
 		if (data.rows) {
-			tbody = util.createElement('tbody');
-			util.each(data.rows, function(i, rows) {
+			tbody = createElement("tbody");
+			each(data.rows, function(i, rows) {
 				if (data.headings) {
 					if (data.headings.length !== rows.length) {
-						throw new Error("The number of rows do not match the number of headings.");
+						throw new Error(
+							"The number of rows do not match the number of headings."
+						);
 					}
 				}
-				var tr = util.createElement('tr');
-				util.each(rows, function(k, value) {
-					var td = util.createElement('td', {
+				var tr = createElement("tr");
+				each(rows, function(k, value) {
+					var td = createElement("td", {
 						html: value
 					});
 					tr.appendChild(td);
@@ -719,25 +462,24 @@
 			if (this.table.tHead !== null) {
 				this.table.removeChild(this.table.tHead);
 			}
-			util.append(this.table, thead);
+			this.table.appendChild(thead);
 		}
 
 		if (tbody) {
 			if (this.table.tBodies.length) {
 				this.table.removeChild(this.table.tBodies[0]);
 			}
-			util.append(this.table, tbody);
+			this.table.appendChild(tbody);
 		}
 	};
 
 	/**
 	 * Use moment.js to parse cell contents for sorting
-	 * @param  {String} content The datetime string to parse
-	 * @param  {String} format  The format for moment to use
-	 * @return {String|Boolean}         Return the datatime string or false
+	 * @param  {String} content 	The datetime string to parse
+	 * @param  {String} format  	The format for moment to use
+	 * @return {String|Boolean} 	Datatime string or false
 	 */
 	var parseDate = function(content, format) {
-
 		var date = false;
 
 		// moment() throws a fit if the string isn't a valid datetime string
@@ -745,8 +487,8 @@
 
 		// Converting to YYYYMMDD ensures we can accurately sort the column numerically
 
-		if ( format ) {
-			switch( format ) {
+		if (format) {
+			switch (format) {
 				case "ISO_8601":
 					date = moment(content, moment.ISO_8601).format("YYYYMMDD");
 					break;
@@ -774,20 +516,22 @@
 	 * @param {Object} instance DataTable instance
 	 * @param {Mixed} columns  Column index or array of column indexes
 	 */
-	function Columns(dt, columns) {
+	var Columns = function(dt, columns) {
 		this.dt = dt;
 		this.columns = columns;
 
 		return this;
 	}
+	
+	var clms = Columns.prototype;
 
 	/**
 	 * Get the columns
 	 * @return {Mixed} columns  Column index or array of column indexes
 	 */
-	Columns.prototype.select = function() {
+	clms.select = function() {
 		var columns = this.columns;
-		if ( !util.isArray(columns) ) {
+		if (!Array.isArray(columns)) {
 			columns = [];
 			columns.push(this.columns);
 		}
@@ -798,14 +542,18 @@
 	 * Swap two columns
 	 * @return {Void}
 	 */
-	Columns.prototype.swap = function() {
-		if ( this.columns.length && this.columns.length === 2 ) {
+	clms.swap = function() {
+		if (this.columns.length && this.columns.length === 2) {
 			var columns = [];
 
 			// Get the current column indexes
-			util.each(this.dt.headings, function(i, heading) {
-				columns.push(i);
-			}, this);
+			each(
+				this.dt.headings,
+				function(i, heading) {
+					columns.push(i);
+				},
+				this
+			);
 
 			var x = this.columns[0];
 			var y = this.columns[1];
@@ -821,7 +569,7 @@
 	 * Reorder the columns
 	 * @return {Array} columns  Array of ordered column indexes
 	 */
-	Columns.prototype.order = function(columns) {
+	clms.order = function(columns) {
 		var b, c, d;
 
 		var temp_a = [];
@@ -830,38 +578,50 @@
 		var temp_d = [];
 
 		// Order the headings
-		util.each(columns, function(x, column) {
-			temp_a.push(this.dt.headings[column].cloneNode(true));
+		each(
+			columns,
+			function(x, column) {
+				temp_a.push(this.dt.headings[column].cloneNode(true));
 
-			if ( this.dt.hiddenColumns.indexOf(column) < 0 ) {
-				b = this.dt.headings[column].cloneNode(true);
-				b.originalCellIndex = x;
-				temp_b.push(b);
-			}
-		}, this);
+				if (this.dt.hiddenColumns.indexOf(column) < 0) {
+					b = this.dt.headings[column].cloneNode(true);
+					b.originalCellIndex = x;
+					temp_b.push(b);
+				}
+			},
+			this
+		);
 
 		// Order the row cells
-		util.each(this.dt.rows, function(i, row) {
-			c = row.cloneNode();
-			d = row.cloneNode();
+		each(
+			this.dt.rows,
+			function(i, row) {
+				c = row.cloneNode();
+				d = row.cloneNode();
 
-			if ( row.searchIndex !== null && row.searchIndex !== undefined  ) {
-				c.searchIndex = row.searchIndex;
-				d.searchIndex = row.searchIndex;
-			}
+				if (row.searchIndex !== null && row.searchIndex !== undefined) {
+					c.searchIndex = row.searchIndex;
+					d.searchIndex = row.searchIndex;
+				}
 
-			// Append to cell to the fragment in the correct order
-			util.each(columns, function(x, column) {
-					c.appendChild(row.cells[column].cloneNode(true));
+				// Append to cell to the fragment in the correct order
+				each(
+					columns,
+					function(x, column) {
+						c.appendChild(row.cells[column].cloneNode(true));
 
-					if ( this.dt.hiddenColumns.indexOf(column) < 0 ) {
-						d.appendChild(row.cells[column].cloneNode(true));
-					}
-			}, this);
+						if (this.dt.hiddenColumns.indexOf(column) < 0) {
+							d.appendChild(row.cells[column].cloneNode(true));
+						}
+					},
+					this
+				);
 
-			temp_c.push(c);
-			temp_d.push(d);
-		}, this);
+				temp_c.push(c);
+				temp_d.push(d);
+			},
+			this
+		);
 
 		this.dt.headings = temp_a;
 		this.dt.activeHeadings = temp_b;
@@ -877,16 +637,19 @@
 	 * Hide columns
 	 * @return {Void}
 	 */
-	Columns.prototype.hide = function() {
-
+	clms.hide = function() {
 		var columns = this.select();
 
-		if ( columns.length ) {
-			util.each(columns, function(i, column) {
-				if ( this.dt.hiddenColumns.indexOf(column) < 0 ) {
-					this.dt.hiddenColumns.push(column);
-				}
-			}, this);
+		if (columns.length) {
+			each(
+				columns,
+				function(i, column) {
+					if (this.dt.hiddenColumns.indexOf(column) < 0) {
+						this.dt.hiddenColumns.push(column);
+					}
+				},
+				this
+			);
 
 			this.rebuild();
 		}
@@ -896,18 +659,22 @@
 	 * Show columns
 	 * @return {Void}
 	 */
-	Columns.prototype.show = function() {
+	clms.show = function() {
 		var columns = this.select();
 
-		if ( columns.length ) {
+		if (columns.length) {
 			var index;
 
-			util.each(columns, function(i, column) {
-				index = this.dt.hiddenColumns.indexOf(column);
-				if ( index > -1 ) {
-					this.dt.hiddenColumns.splice(index, 1);
-				}
-			}, this);
+			each(
+				columns,
+				function(i, column) {
+					index = this.dt.hiddenColumns.indexOf(column);
+					if (index > -1) {
+						this.dt.hiddenColumns.splice(index, 1);
+					}
+				},
+				this
+			);
 
 			this.rebuild();
 		}
@@ -917,16 +684,20 @@
 	 * Check column(s) visibility
 	 * @return {Boolean}
 	 */
-	Columns.prototype.visible = function() {
+	clms.visible = function() {
 		var columns;
 
-		if ( util.isInt(this.columns) ) {
+		if (!isNaN(this.columns)) {
 			columns = this.dt.hiddenColumns.indexOf(this.columns) < 0;
-		} else if ( util.isArray(this.columns) ) {
+		} else if (Array.isArray(this.columns)) {
 			columns = [];
-			util.each(this.columns, function(i, column) {
-				columns.push(this.dt.hiddenColumns.indexOf(column) < 0);
-			}, this);
+			each(
+				this.columns,
+				function(i, column) {
+					columns.push(this.dt.hiddenColumns.indexOf(column) < 0);
+				},
+				this
+			);
 		}
 
 		return columns;
@@ -936,16 +707,20 @@
 	 * Check column(s) visibility
 	 * @return {Boolean}
 	 */
-	Columns.prototype.hidden = function() {
+	clms.hidden = function() {
 		var columns;
 
-		if ( util.isInt(this.columns) ) {
+		if (!isNaN(this.columns)) {
 			columns = this.dt.hiddenColumns.indexOf(this.columns) > -1;
-		} else if ( util.isArray(this.columns) ) {
+		} else if (Array.isArray(this.columns)) {
 			columns = [];
-			util.each(this.columns, function(i, column) {
-				columns.push(this.dt.hiddenColumns.indexOf(column) > -1);
-			}, this);
+			each(
+				this.columns,
+				function(i, column) {
+					columns.push(this.dt.hiddenColumns.indexOf(column) > -1);
+				},
+				this
+			);
 		}
 
 		return columns;
@@ -955,57 +730,66 @@
 	 * Rebuild the columns
 	 * @return {Void}
 	 */
-	Columns.prototype.rebuild = function() {
-
+	clms.rebuild = function() {
 		var a, b;
 		var temp = [];
 
 		this.dt.activeRows = [];
 		this.dt.activeHeadings = [];
 
-		util.each(this.dt.headings, function(i, th) {
-			th.originalCellIndex = i;
-			if ( this.dt.hiddenColumns.indexOf(i) < 0 ) {
-				this.dt.activeHeadings.push(th);
-			}
-		}, this);
+		each(
+			this.dt.headings,
+			function(i, th) {
+				th.originalCellIndex = i;
+				if (this.dt.hiddenColumns.indexOf(i) < 0) {
+					this.dt.activeHeadings.push(th);
+				}
+			},
+			this
+		);
 
 		// Loop over the rows and reorder the cells
-		util.each(this.dt.rows, function(i, row) {
-			a = row.cloneNode();
-			b = row.cloneNode();
+		each(
+			this.dt.rows,
+			function(i, row) {
+				a = row.cloneNode();
+				b = row.cloneNode();
 
-			if ( row.searchIndex !== null && row.searchIndex !== undefined  ) {
-				a.searchIndex = row.searchIndex;
-				b.searchIndex = row.searchIndex;
-			}
+				if (row.searchIndex !== null && row.searchIndex !== undefined) {
+					a.searchIndex = row.searchIndex;
+					b.searchIndex = row.searchIndex;
+				}
 
-			// Append to cell to the fragment in the correct order
-			util.each(row.cells, function(x, cell) {
-					a.appendChild(cell.cloneNode(true));
+				// Append to cell to the fragment in the correct order
+				each(
+					row.cells,
+					function(x, cell) {
+						a.appendChild(cell.cloneNode(true));
 
-					if ( this.dt.hiddenColumns.indexOf(cell.cellIndex) < 0 ) {
-						b.appendChild(cell.cloneNode(true));
-					}
-			}, this);
+						if (this.dt.hiddenColumns.indexOf(cell.cellIndex) < 0) {
+							b.appendChild(cell.cloneNode(true));
+						}
+					},
+					this
+				);
 
-			// Append the fragment with the ordered cells
-			temp.push(a);
-			this.dt.activeRows.push(b);
-		}, this);
+				// Append the fragment with the ordered cells
+				temp.push(a);
+				this.dt.activeRows.push(b);
+			},
+			this
+		);
 
 		this.dt.rows = temp;
 
 		this.dt.update();
 	};
 
-
 	////////////////////
 	//    MAIN LIB    //
 	////////////////////
 
-	function DataTable(table, options) {
-
+	var DataTable = function(table, options) {
 		var defaults = {
 			perPage: 10,
 			perPageSelect: [5, 10, 15, 20, 25],
@@ -1016,10 +800,10 @@
 			// Pagination
 			nextPrev: true,
 			firstLast: false,
-			prevText: '&lsaquo;',
-			nextText: '&rsaquo;',
-			firstText: '&laquo;',
-			lastText: '&raquo;',
+			prevText: "&lsaquo;",
+			nextText: "&rsaquo;",
+			firstText: "&laquo;",
+			lastText: "&raquo;",
 			truncatePager: true,
 			pagerDelta: 2,
 
@@ -1034,22 +818,20 @@
 				placeholder: "Search...", // The search input placeholder
 				perPage: "{select} entries per page", // per-page dropdown label
 				noRows: "No entries found", // Message shown when there are no search results
-				info: "Showing {start} to {end} of {rows} entries", //
+				info: "Showing {start} to {end} of {rows} entries" //
 			},
 
 			// Customise the layout
 			layout: {
 				top: "{select}{search}",
 				bottom: "{info}{pager}"
-			},
+			}
 		};
 
 		this.initialized = false;
 
-		this.utils = util;
-
 		// user options
-		this.options = util.extend(defaults, options);
+		this.options = extend(defaults, options);
 
 		// Checks
 		if (!table) {
@@ -1070,21 +852,25 @@
 		}
 
 		// Disable manual sorting if no header is present (#4)
-		if ( !this.options.header ) {
+		if (!this.options.header) {
 			this.options.sortable = false;
 		}
 
-		if (table.tHead === null ) {
-			if ( !this.options.data || (this.options.data && !this.options.data.headings) ) {
+		if (table.tHead === null) {
+			if (
+				!this.options.data ||
+				(this.options.data && !this.options.data.headings)
+			) {
 				this.options.sortable = false;
 			}
 		}
 
-
 		if (table.tBodies.length && !table.tBodies[0].rows.length) {
 			if (this.options.data) {
 				if (!this.options.data.rows) {
-					throw new Error("You seem to be using the data option, but you've not defined any rows.");
+					throw new Error(
+						"You seem to be using the data option, but you've not defined any rows."
+					);
 				}
 			}
 		}
@@ -1093,6 +879,8 @@
 
 		this.init();
 	}
+	
+	var proto = DataTable.prototype;
 
 	/**
 	 * Add custom property or method to extend DataTable
@@ -1101,7 +889,7 @@
 	 * @return {Void}
 	 */
 	DataTable.extend = function(prop, val) {
-		if (typeof val === 'function') {
+		if (typeof val === "function") {
 			DataTable.prototype[prop] = val;
 		} else {
 			DataTable[prop] = val;
@@ -1113,15 +901,14 @@
 	 * @param  {object} options
 	 * @return {void}
 	 */
-	DataTable.prototype.init = function(options) {
-
-		if ( this.initialized || util.hasClass(this.table, "dataTable-table") ) {
+	proto.init = function(options) {
+		if (this.initialized || classList.contains(this.table, "dataTable-table")) {
 			return false;
 		}
 
 		var that = this;
 
-		this.options = util.extend(this.options, options || {});
+		this.options = extend(this.options, options || {});
 
 		// IE detection
 		this.isIE = !!/(msie|trident)/i.test(navigator.userAgent);
@@ -1131,70 +918,358 @@
 
 		this.hiddenColumns = [];
 
-		build.call(this);
+		this.render();
 
-		// Check for the columns option
-		if ( this.options.columns ) {
-			util.each(this.options.columns, function(x, data) {
-				if ( data.select ) {
-					// convert single column selection to array
-					if ( !util.isArray(data.select) ) {
-						data.select = [data.select];
-					}
-
-					// Add the data attributes to the th elements
-					util.each(data.select, function(i, column) {
-						var th = this.headings[column];
-						if ( data.type ) {
-							th.setAttribute("data-type", data.type);
-						}
-						if ( data.format ) {
-							th.setAttribute("data-format", data.format);
-						}
-					}, this);
-				}
-			}, this);
-
-			this.update();
+		if (this.options.plugins) {
+			each(
+				this.options.plugins,
+				function(plugin, options) {
+					this[plugin](options);
+				},
+				this
+			);
 		}
 
-		if ( this.options.plugins ) {
-			util.each(this.options.plugins, function(plugin, options)  {
-				this[plugin](options);
-			}, this);
+		// Check for the columns option
+		if (this.options.columns) {
+			each(
+				this.options.columns,
+				function(x, data) {
+					if (data.select) {
+						// convert single column selection to array
+						if (!Array.isArray(data.select)) {
+							data.select = [data.select];
+						}
+
+						// Add the data attributes to the th elements
+						each(
+							data.select,
+							function(i, column) {
+								var th = this.headings[column];
+								if (data.type) {
+									th.setAttribute("data-type", data.type);
+								}
+								if (data.format) {
+									th.setAttribute("data-format", data.format);
+								}
+								if (data.hasOwnProperty("sortable")) {
+									th.setAttribute("data-sortable", data.sortable);
+								}
+
+								if (data.hasOwnProperty("hidden")) {
+									if (data.hidden !== false) {
+										this.columns(column).hide();
+									}
+								}
+							},
+							this
+						);
+					}
+				},
+				this
+			);
 		}
 
 		setTimeout(function() {
-			that.emit('datatable.init');
+			that.emit("datatable.init");
 			that.initialized = true;
 		}, 10);
+	};
+
+	proto.render = function() {
+		var o = this.options;
+		var template = "";
+
+		// Convert data to HTML
+		if (o.data) {
+			dataToTable.call(this);
+		}
+
+		// Store references
+		this.body = this.table.tBodies[0];
+		this.head = this.table.tHead;
+		this.foot = this.table.tFoot;
+
+		if (!this.body) {
+			this.body = createElement("tbody");
+
+			this.table.appendChild(this.body);
+		}
+
+		this.hasRows = this.body.rows.length > 0;
+
+		// Make a tHead if there isn't one (fixes #8)
+		if (!this.head) {
+			var h = createElement("thead");
+			var t = createElement("tr");
+
+			if (this.hasRows) {
+				each(this.body.rows[0].cells, function(i, cell) {
+					t.appendChild(createElement("th"));
+				});
+
+				h.appendChild(t);
+			}
+
+			this.head = h;
+
+			this.table.insertBefore(this.head, this.body);
+		}
+
+		this.hasHeadings = this.head.rows.length > 0;
+
+		if (this.hasHeadings) {
+			this.header = this.head.rows[0];
+			this.headings = [].slice.call(this.header.cells);
+		}
+
+		// Header
+		if (!o.header) {
+			if (this.head) {
+				this.table.removeChild(this.table.tHead);
+			}
+		}
+
+		// Footer
+		if (o.footer) {
+			if (this.head && !this.foot) {
+				this.foot = createElement("tfoot", {
+					html: this.head.innerHTML
+				});
+				this.table.appendChild(this.foot);
+			}
+		} else {
+			if (this.foot) {
+				this.table.removeChild(this.table.tFoot);
+			}
+		}
+
+		// Build
+		this.wrapper = createElement("div", {
+			class: "dataTable-wrapper"
+		});
+
+		// Template for custom layouts
+		template += "<div class='dataTable-top'>";
+		template += o.layout.top;
+		template += "</div>";
+		template += "<div class='dataTable-container'></div>";
+		template += "<div class='dataTable-bottom'>";
+		template += o.layout.bottom;
+		template += "</div>";
+
+		// Info placement
+		template = template.replace("{info}", "<div class='dataTable-info'></div>");
+
+		// Per Page Select
+		if (o.perPageSelect) {
+			var wrap = "<div class='dataTable-dropdown'><label>";
+			wrap += o.labels.perPage;
+			wrap += "</label></div>";
+
+			// Create the select
+			var select = createElement("select", {
+				class: "dataTable-selector"
+			});
+
+			// Create the options
+			each(o.perPageSelect, function(i, val) {
+				var selected = val === o.perPage;
+				var option = new Option(val, val, selected, selected);
+				select.add(option);
+			});
+
+			// Custom label
+			wrap = wrap.replace("{select}", select.outerHTML);
+
+			// Selector placement
+			template = template.replace("{select}", wrap);
+		} else {
+			template = template.replace("{select}", "");
+		}
+
+		// Searchable
+		if (o.searchable) {
+			var form =
+				"<div class='dataTable-search'><input class='dataTable-input' placeholder='" +
+				o.labels.placeholder +
+				"' type='text'></div>";
+
+			// Search input placement
+			template = template.replace("{search}", form);
+		} else {
+			template = template.replace("{search}", "");
+		}
+
+		if (this.hasHeadings) {
+			// Sortable
+			each(this.headings, function(i, th) {
+				th.originalCellIndex = th.cellIndex;
+				if (o.sortable) {
+					var link = createElement("a", {
+						href: "#",
+						class: "dataTable-sorter",
+						html: th.innerHTML
+					});
+					th.innerHTML = "";
+					th.setAttribute("data-sortable", "");
+					th.appendChild(link);
+				}
+			});
+		}
+
+		// Add table class
+		classList.add(this.table, "dataTable-table");
+
+		// Paginator
+		var w = createElement("div", {
+			class: "dataTable-pagination"
+		});
+		var paginator = createElement("ul");
+		w.appendChild(paginator);
+
+		// Pager(s) placement
+		template = template.replace(/\{pager\}/g, w.outerHTML);
+
+		this.wrapper.innerHTML = template;
+
+		this.container = this.wrapper.querySelector(".dataTable-container");
+
+		this.pagers = this.wrapper.querySelectorAll(".dataTable-pagination");
+
+		this.label = this.wrapper.querySelector(".dataTable-info");
+
+		// Insert in to DOM tree
+		this.table.parentNode.replaceChild(this.wrapper, this.table);
+		this.container.appendChild(this.table);
+
+		// Store the table dimensions
+		this.rect = this.table.getBoundingClientRect();
+
+		// Convert rows to array for processing
+		this.rows = [].slice.call(this.body.rows);
+		this.activeRows = this.rows.slice();
+		this.activeHeadings = this.headings.slice();
+
+		// Update
+		this.update();
+
+		// Fixed height
+		if (o.fixedHeight) {
+			fixHeight.call(this);
+		}
+
+		if (this.options.fixedColumns) {
+			this.fixColumns();
+		}
+
+		// Class names
+		if (!o.header) {
+			classList.add(this.wrapper, "no-header");
+		}
+
+		if (!o.footer) {
+			classList.add(this.wrapper, "no-footer");
+		}
+
+		if (o.sortable) {
+			classList.add(this.wrapper, "sortable");
+		}
+
+		if (o.searchable) {
+			classList.add(this.wrapper, "searchable");
+		}
+
+		if (o.fixedHeight) {
+			classList.add(this.wrapper, "fixed-height");
+		}
+
+		if (o.fixedColumns) {
+			classList.add(this.wrapper, "fixed-columns");
+		}
+
+		this.bindEvents();
+	};
+
+	proto.bindEvents = function() {
+		var that = this,
+			o = that.options;
+		
+		// Per page selector
+		if (o.perPageSelect) {
+			var selector = that.wrapper.querySelector(".dataTable-selector");
+			if (selector) {
+				// Change per page
+				on(selector, "change", function(e) {
+					o.perPage = parseInt(this.value, 10);
+					that.update();
+
+					if (o.fixedHeight) {
+						fixHeight.call(that);
+					}
+
+					that.emit("datatable.perpage");
+				});
+			}
+		}
+
+		// Search input
+		if (o.searchable) {
+			that.input = that.wrapper.querySelector(".dataTable-input");
+			if (that.input) {
+				on(that.input, "keyup", function(e) {
+					that.search(this.value);
+				});
+			}
+		}
+
+		// Pager(s) / sorting
+		on(that.wrapper, "click", function(e) {
+			var t = e.target;
+			if (t.nodeName.toLowerCase() === "a" ) {
+				e.preventDefault();
+				if ( t.hasAttribute("data-page") ) {
+					that.page(t.getAttribute("data-page"));
+				} else if ( o.sortable && classList.contains(t, "dataTable-sorter") && t.parentNode.getAttribute("data-sortable") != "false" ) {
+					that.sortColumn(that.activeHeadings.indexOf(t.parentNode) + 1);
+				}
+			}
+		});
 	};
 
 	/**
 	 * Destroy the instance
 	 * @return {void}
 	 */
-	DataTable.prototype.destroy = function() {
+	proto.destroy = function() {
 		var o = this.options;
 
 		// Remove the sorters
-		if ( o.sortable ) {
-			util.each(this.head.rows[0].cells, function(i, th) {
-				var html = th.firstElementChild.innerHTML;
-				th.innerHTML = html;
-				th.removeAttribute("style");
-			}, this);
+		if (o.sortable) {
+			each(
+				this.head.rows[0].cells,
+				function(i, th) {
+					var html = th.firstElementChild.innerHTML;
+					th.innerHTML = html;
+					th.removeAttribute("style");
+				},
+				this
+			);
 		}
 
 		// Populate the table
-		var f = util.createFragment();
-		util.each(this.rows, function(i, tr) {
-			f.appendChild(tr);
-		}, this);
+		var f = doc.createDocumentFragment();
+		each(
+			this.rows,
+			function(i, tr) {
+				f.appendChild(tr);
+			},
+			this
+		);
 		this.clear(f);
 
 		// Remove the className
-		util.removeClass(this.table, "dataTable-table");
+		classList.remove(this.table, "dataTable-table");
 
 		// Remove the containers
 		this.wrapper.parentNode.replaceChild(this.table, this.wrapper);
@@ -1208,10 +1283,10 @@
 	 * @param  {Function} callback
 	 * @return {Void}
 	 */
-	DataTable.prototype.on = function(event, callback) {
-		this._events = this._events || {};
-		this._events[event] = this._events[event] || [];
-		this._events[event].push(callback);
+	proto.on = function(event, callback) {
+		this.events = this.events || {};
+		this.events[event] = this.events[event] || [];
+		this.events[event].push(callback);
 	};
 
 	/**
@@ -1220,10 +1295,10 @@
 	 * @param  {Function} callback
 	 * @return {Void}
 	 */
-	DataTable.prototype.off = function(event, callback) {
-		this._events = this._events || {};
-		if (event in this._events === false) return;
-		this._events[event].splice(this._events[event].indexOf(callback), 1);
+	proto.off = function(event, callback) {
+		this.events = this.events || {};
+		if (event in this.events === false) return;
+		this.events[event].splice(this.events[event].indexOf(callback), 1);
 	};
 
 	/**
@@ -1231,11 +1306,11 @@
 	 * @param  {String} event
 	 * @return {Void}
 	 */
-	DataTable.prototype.emit = function(event) {
-		this._events = this._events || {};
-		if (event in this._events === false) return;
-		for (var i = 0; i < this._events[event].length; i++) {
-			this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+	proto.emit = function(event) {
+		this.events = this.events || {};
+		if (event in this.events === false) return;
+		for (var i = 0; i < this.events[event].length; i++) {
+			this.events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
 		}
 	};
 
@@ -1243,8 +1318,7 @@
 	 * Update the instance
 	 * @return {Void}
 	 */
-	DataTable.prototype.update = function() {
-
+	proto.update = function() {
 		paginate.call(this);
 		render.call(this);
 
@@ -1253,46 +1327,54 @@
 		var i = this.pages.length;
 		while (i--) {
 			var num = i + 1;
-			this.links[i] = util.button((i === 0) ? 'active' : '', num, num);
+			this.links[i] = button(i === 0 ? "active" : "", num, num);
 		}
 
 		this.sorting = false;
 
 		renderPager.call(this);
 
-		this.emit('datatable.update');
+		this.emit("datatable.update");
 	};
 
 	/**
 	 * Fix column widths
 	 * @return {Void}
 	 */
-	DataTable.prototype.fixColumns = function() {
-		var cells, hd = false;
+	proto.fixColumns = function() {
+		var cells,
+			hd = false;
 
 		// If we have headings we need only set the widths on them
 		// otherwise we need a temp header and the widths need applying to all cells
 		if (this.table.tHead && this.activeHeadings.length) {
 			// Reset widths
-			util.each(this.activeHeadings, function(i, cell) {
-				cell.style.width = "";
-			}, this);
+			each(
+				this.activeHeadings,
+				function(i, cell) {
+					cell.style.width = "";
+				},
+				this
+			);
 
-			util.each(this.activeHeadings, function(i, cell) {
-				var ow = cell.offsetWidth;
-				var w = (ow / this.rect.width) * 100;
-				cell.style.width = w + '%';
-			}, this);
+			each(
+				this.activeHeadings,
+				function(i, cell) {
+					var ow = cell.offsetWidth;
+					var w = ow / this.rect.width * 100;
+					cell.style.width = w + "%";
+				},
+				this
+			);
 		} else {
-
 			cells = [];
 
 			// Make temperary headings
-			hd = util.createElement("thead");
-			var r = util.createElement("tr");
+			hd = createElement("thead");
+			var r = createElement("tr");
 			var c = this.table.tBodies[0].rows[0].cells;
-			util.each(c, function(i, row) {
-				var th = util.createElement("th");
+			each(c, function(i, row) {
+				var th = createElement("th");
 				r.appendChild(th);
 				cells.push(th);
 			});
@@ -1301,23 +1383,34 @@
 			this.table.insertBefore(hd, this.body);
 
 			var widths = [];
-			util.each(cells, function(i, cell) {
-				var ow = cell.offsetWidth;
-				var w = (ow / this.rect.width) * 100;
-				widths.push(w);
-			}, this);
+			each(
+				cells,
+				function(i, cell) {
+					var ow = cell.offsetWidth;
+					var w = ow / this.rect.width * 100;
+					widths.push(w);
+				},
+				this
+			);
 
-			util.each(this.rows, function(idx, row) {
-				util.each(row.cells, function(i, cell) {
-					if ( this.columns(cell.cellIndex).visible() )
-						cell.style.width = widths[i] + "%";
-				}, this);
-			}, this);
+			each(
+				this.rows,
+				function(idx, row) {
+					each(
+						row.cells,
+						function(i, cell) {
+							if (this.columns(cell.cellIndex).visible())
+								cell.style.width = widths[i] + "%";
+						},
+						this
+					);
+				},
+				this
+			);
 
 			// Discard the temp header
 			this.table.removeChild(hd);
 		}
-
 	};
 
 	/**
@@ -1325,9 +1418,8 @@
 	 * @param  {string} query
 	 * @return {void}
 	 */
-	DataTable.prototype.search = function(query) {
-
-		if ( !this.hasRows ) return false;
+	proto.search = function(query) {
+		if (!this.hasRows) return false;
 
 		var that = this;
 
@@ -1341,43 +1433,48 @@
 			this.searching = false;
 			this.update();
 			this.emit("datatable.search", query, this.searchData);
-			util.removeClass(this.wrapper, 'search-results');
+			classList.remove(this.wrapper, "search-results");
 			return false;
 		}
 
 		this.clear();
 
-		util.each(this.rows, function(idx, row) {
-			var inArray = util.includes(this.searchData, row);
+		each(
+			this.rows,
+			function(idx, row) {
+				var inArray = this.searchData.indexOf(row) > -1;
 
-			// https://github.com/Mobius1/Vanilla-DataTables/issues/12
-			var doesQueryMatch = query.split(" ").reduce(function (bool, word) {
+				// https://github.com/Mobius1/Vanilla-DataTables/issues/12
+				var doesQueryMatch = query.split(" ").reduce(function(bool, word) {
+					var includes = false;
 
-				var includes = false;
-
-				for ( var x = 0; x < row.cells.length; x++ ) {
-					if ( util.includes(row.cells[x].textContent.toLowerCase(), word) && that.columns(row.cells[x].cellIndex).visible() ) {
-						includes = true;
-						break;
+					for (var x = 0; x < row.cells.length; x++) {
+						if (
+							row.cells[x].textContent.toLowerCase().indexOf(word) > -1 &&
+							that.columns(row.cells[x].cellIndex).visible()
+						) {
+							includes = true;
+							break;
+						}
 					}
+
+					return bool && includes;
+				}, true);
+
+				if (doesQueryMatch && !inArray) {
+					row.searchIndex = idx;
+					this.searchData.push(idx);
+				} else {
+					row.searchIndex = null;
 				}
+			},
+			this
+		);
 
-				return bool && includes;
-			}, true);
-
-
-			if (doesQueryMatch && !inArray) {
-				row.searchIndex = idx;
-				this.searchData.push(idx);
-			} else {
-				row.searchIndex = null;
-			}
-		}, this);
-
-		util.addClass(this.wrapper, 'search-results');
+		classList.add(this.wrapper, "search-results");
 
 		if (!this.searchData.length) {
-			util.removeClass(this.wrapper, 'search-results');
+			classList.remove(this.wrapper, "search-results");
 			this.setMessage(this.options.labels.noRows);
 		}
 
@@ -1391,7 +1488,7 @@
 	 * @param  {int} page
 	 * @return {void}
 	 */
-	DataTable.prototype.page = function(page) {
+	proto.page = function(page) {
 		// We don't want to load the current page again.
 		if (page == this.currentPage) {
 			return false;
@@ -1408,7 +1505,7 @@
 		render.call(this);
 		renderPager.call(this);
 
-		this.emit('datatable.page', page);
+		this.emit("datatable.page", page);
 	};
 
 	/**
@@ -1417,10 +1514,9 @@
 	 * @param  {string} direction - asc or desc
 	 * @return {void}
 	 */
-	DataTable.prototype.sortColumn = function(column, direction) {
-
+	proto.sortColumn = function(column, direction) {
 		// Check column is present
-		if ( column < 1 || column > this.activeHeadings.length ) {
+		if (column < 1 || column > this.activeHeadings.length) {
 			return false;
 		}
 
@@ -1439,22 +1535,22 @@
 
 		column = th.originalCellIndex;
 
-		util.each(rows, function(i, tr) {
+		each(rows, function(i, tr) {
 			var cell = tr.cells[column];
 			var content = cell.textContent;
 			var num = content.replace(/(\$|\,|\s|%)/g, "");
 
 			// Check for date format and moment.js
-			if ( th.getAttribute("data-type") === "date" && window.moment ) {
-				var format = false, formatted = th.hasAttribute("data-format");
+			if (th.getAttribute("data-type") === "date" && window.moment) {
+				var format = false,
+					formatted = th.hasAttribute("data-format");
 
-				if ( formatted ) {
+				if (formatted) {
 					format = th.getAttribute("data-format");
 				}
 
 				num = parseDate(content, format);
 			}
-
 
 			if (parseFloat(num) == num) {
 				numeric[n++] = { value: Number(num), row: tr };
@@ -1463,27 +1559,26 @@
 			}
 		});
 
-
 		/* Sort according to direction (ascending or descending) */
 		var top, btm;
-		if (util.hasClass(th, "asc") || direction == "asc") {
+		if (classList.contains(th, "asc") || direction == "asc") {
 			top = sortItems(alpha, -1);
 			btm = sortItems(numeric, -1);
-			dir = 'descending';
-			util.removeClass(th, 'asc');
-			util.addClass(th, 'desc');
+			dir = "descending";
+			classList.remove(th, "asc");
+			classList.add(th, "desc");
 		} else {
 			top = sortItems(numeric, 1);
 			btm = sortItems(alpha, 1);
-			dir = 'ascending';
-			util.removeClass(th, 'desc');
-			util.addClass(th, 'asc');
+			dir = "ascending";
+			classList.remove(th, "desc");
+			classList.add(th, "asc");
 		}
 
 		/* Clear asc/desc class names from the last sorted column's th if it isn't the same as the one that was just clicked */
 		if (this.lastTh && th != this.lastTh) {
-			util.removeClass(this.lastTh, 'desc');
-			util.removeClass(this.lastTh, 'asc');
+			classList.remove(this.lastTh, "desc");
+			classList.remove(this.lastTh, "asc");
 		}
 
 		this.lastTh = th;
@@ -1494,13 +1589,17 @@
 		this.rows = [];
 		var indexes = [];
 
-		util.each(rows, function(i, v) {
-			this.rows.push(v.row);
+		each(
+			rows,
+			function(i, v) {
+				this.rows.push(v.row);
 
-			if ( v.row.searchIndex !== null && v.row.searchIndex !== undefined  ) {
-				indexes.push(i);
-			}
-		}, this);
+				if (v.row.searchIndex !== null && v.row.searchIndex !== undefined) {
+					indexes.push(i);
+				}
+			},
+			this
+		);
 
 		this.searchData = indexes;
 
@@ -1508,27 +1607,28 @@
 
 		this.update();
 
-		this.emit('datatable.sort', column, dir);
+		this.emit("datatable.sort", column, dir);
 	};
 
 	/**
 	 * Add new row data
 	 * @param {object} data
 	 */
-	DataTable.prototype.addRows = function(data) {
-		if ( !util.isObject(data) ) {
-			throw new Error("Method addRows requires an object.");
+	proto.insert = function(data) {
+		if (!"[object Object]" === Object.prototype.toString.call(data)) {
+			throw new Error("Method insert requires an object.");
 		}
 
 		if (!data.rows) {
-			throw new Error("Method addRows requires the 'rows' property.");
+			throw new Error("Method insert requires the 'rows' property.");
 		}
 
-		if ( data.headings ) {
-			if ( !this.hasHeadings && !this.hasRows ) {
-				var tr = util.createElement("tr"), th;
-				util.each(data.headings, function(i, heading) {
-					th = util.createElement("th", {
+		if (data.headings) {
+			if (!this.hasHeadings && !this.hasRows) {
+				var tr = createElement("tr"),
+					th;
+				each(data.headings, function(i, heading) {
+					th = createElement("th", {
 						html: heading
 					});
 
@@ -1538,16 +1638,24 @@
 			}
 		}
 
-		util.each(data.rows, function(i, row) {
-			var tr = util.createElement("tr");
-			util.each(row, function(a, val) {
-				var td = util.createElement("td", {
-					html: val
-				});
-				tr.appendChild(td);
-			}, this);
-			this.rows.push(tr);
-		}, this);
+		each(
+			data.rows,
+			function(i, row) {
+				var tr = createElement("tr");
+				each(
+					row,
+					function(a, val) {
+						var td = createElement("td", {
+							html: val
+						});
+						tr.appendChild(td);
+					},
+					this
+				);
+				this.rows.push(tr);
+			},
+			this
+		);
 
 		this.columns().rebuild();
 
@@ -1560,9 +1668,9 @@
 	 * Refresh the instance
 	 * @return {void}
 	 */
-	DataTable.prototype.refresh = function() {
-		if ( this.options.searchable ) {
-			this.input.value = '';
+	proto.refresh = function() {
+		if (this.options.searchable) {
+			this.input.value = "";
 			this.searching = false;
 		}
 		this.currentPage = 1;
@@ -1577,9 +1685,9 @@
 	 * @param  {mixes} html - HTML string or HTMLElement
 	 * @return {void}
 	 */
-	DataTable.prototype.clear = function(html) {
+	proto.clear = function(html) {
 		if (this.body) {
-			util.flush(this.body, this.isIE);
+			flush(this.body, this.isIE);
 		}
 
 		var parent = this.body;
@@ -1588,10 +1696,10 @@
 		}
 
 		if (html) {
-			if ( typeof html === "string" ) {
+			if (typeof html === "string") {
 				parent.innerHTML = html;
 			} else {
-				util.append(parent, html);
+				parent.appendChild(html);
 			}
 		}
 	};
@@ -1601,19 +1709,24 @@
 	 * @param  {Object} options User options
 	 * @return {Boolean}
 	 */
-	DataTable.prototype.export = function(options) {
+	proto.export = function(options) {
+		if (!this.hasHeadings && !this.hasRows) return false;
 
-		if ( !this.hasHeadings && !this.hasRows ) return false;
-
-		var headers = this.activeHeadings, rows = [], arr = [], i, x, str, link;
+		var headers = this.activeHeadings,
+			rows = [],
+			arr = [],
+			i,
+			x,
+			str,
+			link;
 
 		var defaults = {
 			download: true,
 			skipColumn: [],
 
 			// csv
-			lineDelimiter:  "\n",
-			columnDelimiter:  ",",
+			lineDelimiter: "\n",
+			columnDelimiter: ",",
 
 			// sql
 			tableName: "myTable",
@@ -1624,28 +1737,26 @@
 		};
 
 		// Check for the options object
-		if ( !util.isObject(options) ) {
+		if (!"[object Object]" === Object.prototype.toString.call(options)) {
 			return false;
 		}
 
-		options = util.extend(defaults, options);
+		options = extend(defaults, options);
 
-		if ( options.type ) {
-
-			if ( options.type === "txt" || options.type === "csv" ) {
+		if (options.type) {
+			if (options.type === "txt" || options.type === "csv") {
 				// Include headings
 				rows[0] = this.header;
 			}
 
 			// Selection or whole table
-			if ( options.selection ) {
+			if (options.selection) {
 				// Page number
-				if ( util.isInt(options.selection) ) {
+				if (!isNaN(options.selection)) {
 					rows = rows.concat(this.pages[options.selection - 1]);
-				}
-				// Array of page numbers
-				else if ( util.isArray(options.selection) ) {
-					for ( i = 0; i < options.selection.length; i++ ) {
+				} else if (Array.isArray(options.selection)) {
+					// Array of page numbers
+					for (i = 0; i < options.selection.length; i++) {
 						rows = rows.concat(this.pages[options.selection[i] - 1]);
 					}
 				}
@@ -1654,15 +1765,17 @@
 			}
 
 			// Only proceed if we have data
-			if ( rows.length ) {
-
-				if ( options.type === "txt" || options.type === "csv" ) {
+			if (rows.length) {
+				if (options.type === "txt" || options.type === "csv") {
 					str = "";
 
-					for ( i = 0; i < rows.length; i++ ) {
-						for ( x = 0; x < rows[i].cells.length; x++ ) {
+					for (i = 0; i < rows.length; i++) {
+						for (x = 0; x < rows[i].cells.length; x++) {
 							// Check for column skip and visibility
-							if ( options.skipColumn.indexOf(x) < 0 && this.columns(rows[i].cells[x].cellIndex).visible() ) {
+							if (
+								options.skipColumn.indexOf(x) < 0 &&
+								this.columns(rows[i].cells[x].cellIndex).visible()
+							) {
 								str += rows[i].cells[x].textContent + options.columnDelimiter;
 							}
 						}
@@ -1676,18 +1789,20 @@
 					// Remove trailing line delimiter
 					str = str.trim().substring(0, str.length - 1);
 
-					if ( options.download ) {
+					if (options.download) {
 						str = "data:text/csv;charset=utf-8," + str;
 					}
-				} else if ( options.type === "sql" ) {
-
+				} else if (options.type === "sql") {
 					// Begin INSERT statement
 					str = "INSERT INTO `" + options.tableName + "` (";
 
 					// Convert table headings to column names
-					for ( i = 0; i < headers.length; i++ ) {
+					for (i = 0; i < headers.length; i++) {
 						// Check for column skip and column visibility
-						if ( options.skipColumn.indexOf(i) < 0 && this.columns(headers[i].cellIndex).visible() ) {
+						if (
+							options.skipColumn.indexOf(i) < 0 &&
+							this.columns(headers[i].cellIndex).visible()
+						) {
 							str += "`" + headers[i].textContent + "`,";
 						}
 					}
@@ -1699,13 +1814,16 @@
 					str += ") VALUES ";
 
 					// Iterate rows and convert cell data to column values
-					for ( i = 0; i < rows.length; i++ ) {
+					for (i = 0; i < rows.length; i++) {
 						str += "(";
 
-						for ( x = 0; x < rows[i].cells.length; x++ ) {
+						for (x = 0; x < rows[i].cells.length; x++) {
 							// Check for column skip and column visibility
-							if ( options.skipColumn.indexOf(x) < 0 && this.columns(rows[i].cells[x].cellIndex).visible() ) {
-								str += '"'+ rows[i].cells[x].textContent + '",';
+							if (
+								options.skipColumn.indexOf(x) < 0 &&
+								this.columns(rows[i].cells[x].cellIndex).visible()
+							) {
+								str += '"' + rows[i].cells[x].textContent + '",';
 							}
 						}
 
@@ -1722,18 +1840,20 @@
 					// Add trailing colon
 					str += ";";
 
-					if ( options.download ) {
-						str = 'data:application/sql;charset=utf-8,' + str;
+					if (options.download) {
+						str = "data:application/sql;charset=utf-8," + str;
 					}
-				} else if ( options.type === "json" ) {
-
+				} else if (options.type === "json") {
 					// Iterate rows
-					for ( x = 0; x < rows.length; x++ ) {
+					for (x = 0; x < rows.length; x++) {
 						arr[x] = arr[x] || {};
 						// Iterate columns
-						for ( i = 0; i < headers.length; i++ ) {
+						for (i = 0; i < headers.length; i++) {
 							// Check for column skip and column visibility
-							if ( options.skipColumn.indexOf(i) < 0 && this.columns(rows[x].cells[i].cellIndex).visible() ) {
+							if (
+								options.skipColumn.indexOf(i) < 0 &&
+								this.columns(rows[x].cells[i].cellIndex).visible()
+							) {
 								arr[x][headers[i].textContent] = rows[x].cells[i].textContent;
 							}
 						}
@@ -1742,21 +1862,21 @@
 					// Convert the array of objects to JSON string
 					str = JSON.stringify(arr, options.replacer, options.space);
 
-					if ( options.download ) {
-						str = 'data:application/json;charset=utf-8,' + str;
+					if (options.download) {
+						str = "data:application/json;charset=utf-8," + str;
 					}
 				}
 
 				// Download
-				if ( options.download ) {
+				if (options.download) {
 					// Filename
-					options.filename = options.filename || 'datatable_export';
+					options.filename = options.filename || "datatable_export";
 					options.filename += "." + options.type;
 
 					// Create a link to trigger the download
 					str = encodeURI(str);
 
-					link = document.createElement('a');
+					link = document.createElement("a");
 					link.href = str;
 					link.download = options.filename;
 
@@ -1782,57 +1902,54 @@
 	 * @param  {Object} options User options
 	 * @return {Boolean}
 	 */
-	DataTable.prototype.import = function(options) {
+	proto.import = function(options) {
 		var obj = false;
 		var defaults = {
 			// csv
-			lineDelimiter:  "\n",
-			columnDelimiter:  ",",
+			lineDelimiter: "\n",
+			columnDelimiter: ","
 		};
 
 		// Check for the options object
-		if ( !util.isObject(options) ) {
+		if (!"[object Object]" === Object.prototype.toString.call(options)) {
 			return false;
 		}
 
-		options = util.extend(defaults, options);
+		options = extend(defaults, options);
 
-		if ( options.data.length ) {
-
+		if (options.data.length) {
 			// Import CSV
-			if ( options.type === "csv" ) {
+			if (options.type === "csv") {
 				obj = { rows: [] };
 
 				// Split the string into rows
 				var rows = options.data.split(options.lineDelimiter);
 
-				if ( rows.length ) {
-					util.each(rows, function(i, row) {
+				if (rows.length) {
+					each(rows, function(i, row) {
 						obj.rows[i] = [];
 
 						// Split the rows into values
 						var values = row.split(options.columnDelimiter);
 
-						if ( values.length ) {
-							util.each(values, function(x, value) {
+						if (values.length) {
+							each(values, function(x, value) {
 								obj.rows[i].push(value);
 							});
 						}
 					});
 				}
-			} else if ( options.type === "json" ) {
-
-				var json = util.isJson(options.data);
+			} else if (options.type === "json") {
+				var json = isJson(options.data);
 
 				// Valid JSON string
-				if ( json ) {
-
+				if (json) {
 					obj = { headings: [], rows: [] };
 
-					util.each(json, function(i, data) {
+					each(json, function(i, data) {
 						obj.rows[i] = [];
-						util.each(data, function(column, value) {
-							if ( !util.includes(obj.headings, column) ) {
+						each(data, function(column, value) {
+							if (obj.headings.indexOf(column) < 0) {
 								obj.headings.push(column);
 							}
 
@@ -1844,9 +1961,9 @@
 				}
 			}
 
-			if ( obj ) {
+			if (obj) {
 				// Add the rows
-				this.addRows(obj);
+				this.insert(obj);
 			}
 		}
 
@@ -1857,28 +1974,32 @@
 	 * Print the table
 	 * @return {void}
 	 */
-	DataTable.prototype.print = function() {
+	proto.print = function() {
 		var headings = this.activeHeadings;
 		var rows = this.activeRows;
-		var table = util.createElement("table");
-		var thead = util.createElement("thead");
-		var tbody = util.createElement("tbody");
+		var table = createElement("table");
+		var thead = createElement("thead");
+		var tbody = createElement("tbody");
 
-		var tr = util.createElement("tr");
-		util.each(headings, function(i, th) {
-			tr.appendChild(util.createElement("th", {
-				html: th.textContent
-			}));
+		var tr = createElement("tr");
+		each(headings, function(i, th) {
+			tr.appendChild(
+				createElement("th", {
+					html: th.textContent
+				})
+			);
 		});
 
 		thead.appendChild(tr);
 
-		util.each(rows, function(i, row) {
-			var tr = util.createElement('tr');
-			util.each(row.cells, function(k, cell) {
-				tr.appendChild(util.createElement('td', {
-					html: cell.textContent
-				}));
+		each(rows, function(i, row) {
+			var tr = createElement("tr");
+			each(row.cells, function(k, cell) {
+				tr.appendChild(
+					createElement("td", {
+						html: cell.textContent
+					})
+				);
 			});
 			tbody.appendChild(tr);
 		});
@@ -1900,25 +2021,32 @@
 	 * Show a message in the table
 	 * @param {string} message
 	 */
-	DataTable.prototype.setMessage = function(message) {
+	proto.setMessage = function(message) {
 		var colspan = 1;
 
-		if ( this.hasRows ) {
+		if (this.hasRows) {
 			colspan = this.rows[0].cells.length;
 		}
 
-		this.clear(util.createElement('tr', {
-			html: '<td class="dataTables-empty" colspan="' + colspan + '">' + message + '</td>'
-		}));
+		this.clear(
+			createElement("tr", {
+				html:
+					'<td class="dataTables-empty" colspan="' +
+						colspan +
+						'">' +
+						message +
+						"</td>"
+			})
+		);
 	};
 
 	/**
 	 * Columns API access
 	 * @return {Object} new Columns instance
 	 */
-	DataTable.prototype.columns = function(columns) {
+	proto.columns = function(columns) {
 		return new Columns(this, columns);
 	};
 
 	return DataTable;
-}));
+});
