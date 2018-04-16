@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.6.12
+ * Version: 1.6.13
  *
  */
 (function(root, factory) {
@@ -1677,6 +1677,8 @@
      * @return {Void}
      */
     proto.update = function () {
+        classList.remove(this.wrapper, "dataTable-empty");
+
         this.paginate(this);
         this.render("page");
 
@@ -2415,6 +2417,8 @@
         } else if (this.activeHeadings.length) {
             colspan = this.activeHeadings.length;
         }
+
+        classList.add(this.wrapper, "dataTable-empty");
 
         this.clear(
             createElement("tr", {
