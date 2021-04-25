@@ -871,7 +871,7 @@ export class DataTable {
      * @param  {string} query
      * @return {void}
      */
-    search(query) {
+    search(query, cols) {
         if (!this.hasRows) return false
 
         query = query.toLowerCase()
@@ -900,6 +900,7 @@ export class DataTable {
                 let content = null
 
                 for (let x = 0; x < row.cells.length; x++) {
+                    if (cols != undefined && !cols.includes(x)) continue
                     cell = row.cells[x]
                     content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.textContent
 
