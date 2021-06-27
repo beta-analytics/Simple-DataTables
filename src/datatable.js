@@ -604,6 +604,14 @@ export class DataTable {
                     data.select = [data.select]
                 }
 
+                if (data.hasOwnProperty("selectByName")) {
+                    for (let i in this.headings) {
+                        if (data.selectByName != this.headings[i].innerText) continue
+                        data.select = [ parseInt(i) ]
+                        break
+                    }
+                }
+
                 if (data.hasOwnProperty("render") && typeof data.render === "function") {
                     this.selectedColumns = this.selectedColumns.concat(data.select)
 
