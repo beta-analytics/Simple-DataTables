@@ -605,11 +605,15 @@ export class DataTable {
                 }
 
                 if (data.hasOwnProperty("selectByName")) {
-                    for (let i in this.headings) {
-                        if (data.selectByName != this.headings[i].innerText) continue
-                        data.select = [ parseInt(i) ]
-                        break
-                    }
+                    let iMap = Object.fromEntries(
+                        this.options.data.headings.map(function (heading, idx) {
+                            return [heading, idx]
+                        })
+                    )
+
+                    data.select = data.selectByName.map(function (name) {
+                        return iMap[name]
+                    })
                 }
 
                 if (data.hasOwnProperty("render") && typeof data.render === "function") {
