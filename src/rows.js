@@ -20,13 +20,13 @@ export class Rows {
     build(row) {
         const tr = createElement("tr")
 
-        let headings = this.dt.headings
+        let headers = this.dt.headers
 
-        if (!headings.length) {
-            headings = row.map(() => "")
+        if (!headers.length) {
+            headers = row.map(() => "")
         }
 
-        headings.forEach((h, i) => {
+        headers.forEach((h, i) => {
             const td = createElement("td")
 
             // Fixes #29

@@ -44,7 +44,7 @@ export class DataTable {
 
         if (table.tHead === null) {
             if (!this.options.data ||
-                (this.options.data && !this.options.data.headings)
+                (this.options.data && !this.options.data.headers)
             ) {
                 this.options.sortable = false
             }
@@ -186,12 +186,12 @@ export class DataTable {
             this.hiddenHeader = options.hiddenHeader
         }
 
-        this.headings = []
-        this.hasHeadings = this.head.rows.length > 0
+        this.headers = []
+        this.hasHeaders = this.head.rows.length > 0
 
-        if (this.hasHeadings) {
+        if (this.hasHeaders) {
             this.header = this.head.rows[0]
-            this.headings = [].slice.call(this.header.cells)
+            this.headers = [].slice.call(this.header.cells)
         }
 
         // Header
@@ -274,7 +274,7 @@ export class DataTable {
             template = template.replace("{search}", "")
         }
 
-        if (this.hasHeadings) {
+        if (this.hasHeaders) {
             // Sortable
             this.render("header")
         }
@@ -311,7 +311,7 @@ export class DataTable {
         // Convert rows to array for processing
         this.data = Array.from(this.body.rows)
         this.activeRows = this.data.slice()
-        this.activeHeadings = this.headings.slice()
+        this.activeHeaders = this.headers.slice()
 
         // Update
         this.update()
@@ -359,10 +359,10 @@ export class DataTable {
      * @return {Void}
      */
     renderPage() {
-        if (this.hasHeadings) {
+        if (this.hasHeaders) {
             flush(this.header)
 
-            this.activeHeadings.forEach(th => this.header.appendChild(th))
+            this.activeHeaders.forEach(th => this.header.appendChild(th))
         }
 
 
@@ -488,8 +488,8 @@ export class DataTable {
     renderHeader() {
         this.labels = []
 
-        if (this.headings && this.headings.length) {
-            this.headings.forEach((th, i) => {
+        if (this.headers && this.headers.length) {
+            this.headers.forEach((th, i) => {
 
                 this.labels[i] = th.textContent
 
@@ -559,7 +559,7 @@ export class DataTable {
                     t.classList.contains("dataTable-sorter") &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
-                    this.columns().sort(this.headings.indexOf(t.parentNode))
+                    this.columns().sort(this.headers.indexOf(t.parentNode))
                     e.preventDefault()
                 }
             }
@@ -595,7 +595,7 @@ export class DataTable {
         }
 
         // Check for the columns option
-        if (this.options.columns && this.headings.length) {
+        if (this.options.columns && this.headers.length) {
 
             this.options.columns.forEach(data => {
 
@@ -606,8 +606,8 @@ export class DataTable {
 
                 if (data.hasOwnProperty("selectByName")) {
                     let iMap = Object.fromEntries(
-                        this.options.data.headings.map(function (heading, idx) {
-                            return [heading, idx]
+                        this.options.data.headers.map(function (header, idx) {
+                            return [header, idx]
                         })
                     )
 
@@ -627,7 +627,7 @@ export class DataTable {
 
                 // Add the data attributes to the th elements
                 data.select.forEach(column => {
-                    const th = this.headings[column]
+                    const th = this.headers[column]
                     if (data.type) {
                         th.setAttribute("data-type", data.type)
                     }
@@ -758,12 +758,12 @@ export class DataTable {
      */
     fixColumns() {
 
-        if ((this.options.scrollY.length || this.options.fixedColumns) && this.activeHeadings && this.activeHeadings.length) {
+        if ((this.options.scrollY.length || this.options.fixedColumns) && this.activeHeaders && this.activeHeaders.length) {
             let cells
             let hd = false
             this.columnWidths = []
 
-            // If we have headings we need only set the widths on them
+            // If we have headers we need only set the widths on them
             // otherwise we need a temp header and the widths need applying to all cells
             if (this.table.tHead) {
 
@@ -778,11 +778,11 @@ export class DataTable {
                 }
 
                 // Reset widths
-                this.activeHeadings.forEach(cell => {
+                this.activeHeaders.forEach(cell => {
                     cell.style.width = ""
                 })
 
-                this.activeHeadings.forEach((cell, i) => {
+                this.activeHeaders.forEach((cell, i) => {
                     const ow = cell.offsetWidth
                     const w = ow / this.rect.width * 100
                     cell.style.width = `${w}%`
@@ -833,7 +833,7 @@ export class DataTable {
             } else {
                 cells = []
 
-                // Make temperary headings
+                // Make temperary headers
                 hd = createElement("thead")
                 const r = createElement("tr")
                 Array.from(this.table.tBodies[0].rows[0].cells).forEach(() => {
@@ -992,12 +992,12 @@ export class DataTable {
     insert(data) {
         let rows = []
         if (isObject(data)) {
-            if (data.headings) {
-                if (!this.hasHeadings && !this.hasRows) {
+            if (data.headers) {
+                if (!this.hasHeaders && !this.hasRows) {
                     const tr = createElement("tr")
-                    data.headings.forEach(heading => {
+                    data.headers.forEach(header => {
                         const th = createElement("th", {
-                            html: heading
+                            html: header
                         })
 
                         tr.appendChild(th)
@@ -1005,8 +1005,8 @@ export class DataTable {
                     this.head.appendChild(tr)
 
                     this.header = tr
-                    this.headings = [].slice.call(tr.cells)
-                    this.hasHeadings = true
+                    this.headers = [].slice.call(tr.cells)
+                    this.hasHeaders = true
 
                     // Re-enable sorting if it was disabled due
                     // to missing header
@@ -1015,8 +1015,8 @@ export class DataTable {
                     // Allow sorting on new header
                     this.render("header")
 
-                    // Activate newly added headings
-                    this.activeHeadings = this.headings.slice()
+                    // Activate newly added headers
+                    this.activeHeaders = this.headers.slice()
                 }
             }
 
@@ -1026,9 +1026,9 @@ export class DataTable {
         } else if (Array.isArray(data)) {
             data.forEach(row => {
                 const r = []
-                Object.entries(row).forEach(([heading, cell]) => {
+                Object.entries(row).forEach(([header, cell]) => {
 
-                    const index = this.labels.indexOf(heading)
+                    const index = this.labels.indexOf(header)
 
                     if (index > -1) {
                         r[index] = cell
@@ -1096,9 +1096,9 @@ export class DataTable {
      * @return {Boolean}
      */
     export(userOptions) {
-        if (!this.hasHeadings && !this.hasRows) return false
+        if (!this.hasHeaders && !this.hasRows) return false
 
-        const headers = this.activeHeadings
+        const headers = this.activeHeaders
         let rows = []
         const arr = []
         let i
@@ -1134,7 +1134,7 @@ export class DataTable {
 
         if (options.type) {
             if (options.type === "txt" || options.type === "csv") {
-                // Include headings
+                // Include headers
                 rows[0] = this.header
             }
 
@@ -1196,7 +1196,7 @@ export class DataTable {
                     // Begin INSERT statement
                     str = `INSERT INTO \`${options.tableName}\` (`
 
-                    // Convert table headings to column names
+                    // Convert table headers to column names
                     for (i = 0; i < headers.length; i++) {
                         // Check for column skip and column visibility
                         if (
@@ -1332,8 +1332,8 @@ export class DataTable {
 
                 if (rows.length) {
 
-                    if (options.headings) {
-                        obj.headings = rows[0].split(options.columnDelimiter)
+                    if (options.headers) {
+                        obj.headers = rows[0].split(options.columnDelimiter)
 
                         rows.shift()
                     }
@@ -1357,15 +1357,15 @@ export class DataTable {
                 // Valid JSON string
                 if (json) {
                     obj = {
-                        headings: [],
+                        headers: [],
                         data: []
                     }
 
                     json.forEach((data, i) => {
                         obj.data[i] = []
                         Object.entries(data).forEach(([column, value]) => {
-                            if (!obj.headings.includes(column)) {
-                                obj.headings.push(column)
+                            if (!obj.headers.includes(column)) {
+                                obj.headers.push(column)
                             }
 
                             obj.data[i].push(value)
@@ -1394,14 +1394,14 @@ export class DataTable {
      * @return {void}
      */
     print() {
-        const headings = this.activeHeadings
+        const headers = this.activeHeaders
         const rows = this.activeRows
         const table = createElement("table")
         const thead = createElement("thead")
         const tbody = createElement("tbody")
 
         const tr = createElement("tr")
-        headings.forEach(th => {
+        headers.forEach(th => {
             tr.appendChild(
                 createElement("th", {
                     html: th.textContent
@@ -1445,8 +1445,8 @@ export class DataTable {
 
         if (this.hasRows) {
             colspan = this.data[0].cells.length
-        } else if (this.activeHeadings.length) {
-            colspan = this.activeHeadings.length
+        } else if (this.activeHeaders.length) {
+            colspan = this.activeHeaders.length
         }
 
         this.wrapper.classList.add("dataTable-empty")
