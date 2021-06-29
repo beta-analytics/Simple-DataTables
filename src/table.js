@@ -9,10 +9,10 @@ export const dataToTable = function (data) {
 
     data = data || this.options.data
 
-    if (data.headings) {
+    if (data.headers) {
         thead = createElement("thead")
         const tr = createElement("tr")
-        data.headings.forEach(col => {
+        data.headers.forEach(col => {
             const td = createElement("th", {
                 html: col
             })
@@ -25,10 +25,10 @@ export const dataToTable = function (data) {
     if (data.data && data.data.length) {
         tbody = createElement("tbody")
         data.data.forEach(rows => {
-            if (data.headings) {
-                if (data.headings.length !== rows.length) {
+            if (data.headers) {
+                if (data.headers.length !== rows.length) {
                     throw new Error(
-                        "The number of rows do not match the number of headings."
+                        "The number of rows do not match the number of headers."
                     )
                 }
             }

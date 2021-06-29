@@ -20,7 +20,7 @@ export class Columns {
             const cols = []
 
             // Get the current column indexes
-            this.dt.headings.forEach((h, i) => {
+            this.dt.headers.forEach((h, i) => {
                 cols.push(i)
             })
 
@@ -56,9 +56,9 @@ export class Columns {
 
         const dt = this.dt
 
-        // Order the headings
+        // Order the headers
         columns.forEach((column, x) => {
-            h = dt.headings[column]
+            h = dt.headers[column]
             s = h.getAttribute("data-sortable") !== "false"
             a = h.cloneNode(true)
             a.originalCellIndex = x
@@ -103,8 +103,8 @@ export class Columns {
             temp[3].push(d)
         })
 
-        dt.headings = temp[0]
-        dt.activeHeadings = temp[1]
+        dt.headers = temp[0]
+        dt.activeHeaders = temp[1]
 
         dt.data = temp[2]
         dt.activeRows = temp[3]
@@ -159,7 +159,7 @@ export class Columns {
         let cols
         const dt = this.dt
 
-        columns = columns || dt.headings.map(th => th.originalCellIndex)
+        columns = columns || dt.headers.map(th => th.originalCellIndex)
 
         if (!isNaN(columns)) {
             cols = !dt.hiddenColumns.includes(columns)
@@ -181,9 +181,9 @@ export class Columns {
         let td
         const th = document.createElement("th")
 
-        if (!this.dt.headings.length) {
+        if (!this.dt.headers.length) {
             this.dt.insert({
-                headings: [data.heading],
+                headers: [data.header],
                 data: data.data.map(i => [i])
             })
             this.rebuild()
@@ -191,16 +191,16 @@ export class Columns {
         }
 
         if (!this.dt.hiddenHeader) {
-            if (data.heading.nodeName) {
-                th.appendChild(data.heading)
+            if (data.header.nodeName) {
+                th.appendChild(data.header)
             } else {
-                th.innerHTML = data.heading
+                th.innerHTML = data.header
             }
         } else {
             th.innerHTML = ""
         }
 
-        this.dt.headings.push(th)
+        this.dt.headers.push(th)
 
         this.dt.data.forEach((row, i) => {
             if (data.data[i]) {
@@ -250,7 +250,7 @@ export class Columns {
             select.sort((a, b) => b - a)
             select.forEach(column => this.remove(column))
         } else {
-            this.dt.headings.splice(select, 1)
+            this.dt.headers.splice(select, 1)
 
             this.dt.data.forEach(row => {
                 row.removeChild(row.cells[select])
@@ -326,13 +326,13 @@ export class Columns {
         const dt = this.dt
 
         // Check column is present
-        if (dt.hasHeadings && (column < 0 || column > dt.headings.length)) {
+        if (dt.hasHeaders && (column < 0 || column > dt.headers.length)) {
             return false
         }
 
         //If there is a filter for this column, apply it instead of sorting
         const filterTerms = dt.options.filters &&
-              dt.options.filters[dt.headings[column].textContent]
+              dt.options.filters[dt.headers[column].textContent]
         if ( filterTerms && filterTerms.length !== 0 ) {
             this.filter(column, dir, init, filterTerms)
             return;
@@ -349,7 +349,7 @@ export class Columns {
         const numeric = []
         let a = 0
         let n = 0
-        const th = dt.headings[column]
+        const th = dt.headers[column]
 
         const waitFor = []
 
@@ -460,13 +460,13 @@ export class Columns {
         const temp = []
 
         dt.activeRows = []
-        dt.activeHeadings = []
+        dt.activeHeaders = []
 
-        dt.headings.forEach((th, i) => {
+        dt.headers.forEach((th, i) => {
             th.originalCellIndex = i
             th.sortable = th.getAttribute("data-sortable") !== "false"
             if (!dt.hiddenColumns.includes(i)) {
-                dt.activeHeadings.push(th)
+                dt.activeHeaders.push(th)
             }
         })
 
