@@ -56,6 +56,19 @@ export class Columns {
 
         const dt = this.dt
 
+        // Convert named headers to indexes
+        if (typeof columns[0] === 'string') {
+            let iMap = Object.fromEntries(
+                dt.options.data.headers.map(function (header, idx) {
+                    return [header, idx]
+                })
+            )
+
+            columns = columns.map(function (name) {
+                return iMap[name]
+            })
+        }
+
         // Order the headers
         columns.forEach((column, x) => {
             h = dt.headers[column]
