@@ -366,17 +366,6 @@ export class Columns {
 
         const waitFor = []
 
-        // Check for date format
-        if (th.getAttribute("data-type") === "date") {
-            let format = false
-            const formatted = th.hasAttribute("data-format")
-
-            if (formatted) {
-                format = th.getAttribute("data-format")
-            }
-            waitFor.push(import("./date").then(({parseDate}) => date => parseDate(date, format)))
-        }
-
         Promise.all(waitFor).then(importedFunctions => {
             const parseFunction = importedFunctions[0] // only defined if date
             Array.from(rows).forEach(tr => {
