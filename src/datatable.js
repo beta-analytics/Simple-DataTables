@@ -598,36 +598,52 @@ export class DataTable {
         if (this.options.columns && this.headers.length) {
 
             this.options.columns.forEach(data => {
-
                 // convert single column selection to array
                 if (!Array.isArray(data.select)) {
                     data.select = [data.select]
                 }
 
-                if (data.hasOwnProperty("selectByName")) {
-                    let iMap = Object.fromEntries(
-                        this.options.data.headers.map(function (header, idx) {
-                            return [header, idx]
-                        })
-                    )
+                // if (data.hasOwnProperty("selectByName")) {
+                //     let iMap = Object.fromEntries(
+                //         this.options.data.headers.map(function (header, idx) {
+                //             return [header, idx]
+                //         })
+                //     )
 
-                    data.select = data.selectByName.map(function (name) {
-                        return iMap[name]
-                    })
-                }
-
+                //     data.select = data.selectByName.map(function (name) {
+                //         return iMap[name]
+                //     })
+                // }
                 if (data.hasOwnProperty("render") && typeof data.render === "function") {
-                    this.selectedColumns = this.selectedColumns.concat(data.select)
+                    let col = data.select
+                    if (isNaN(col[0])) {
+                        let indexExpression = `count(//table/thead/tr/th[a/text()='${col[0]}']/preceding-sibling::th)`
+                        let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
+                        col[0] = result.numberValue
 
-                    this.columnRenderers.push({
-                        columns: data.select,
-                        renderer: data.render
-                    })
+                        this.selectedColumns = this.selectedColumns.concat(col[0])
+                        this.columnRenderers.push({
+                            columns: col,
+                            renderer: data.render
+                        })
+                    } else {
+                        this.selectedColumns = this.selectedColumns.concat(col[0])
+                        this.columnRenderers.push({
+                            columns: col,
+                            renderer: data.render
+                        })
+                    }
                 }
-
+                    
                 // Add the data attributes to the th elements
                 data.select.forEach(column => {
-                    const th = this.headers[column]
+                    var col = column
+                    if (isNaN(column)) {
+                        let indexExpression = `count(//table/thead/tr/th[a/text()='${column}']/preceding-sibling::th)`
+                        let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
+                        col = result.numberValue
+                    }
+                    const th = this.headers[col]
                     if (data.type) {
                         th.setAttribute("data-type", data.type)
                     }
@@ -637,16 +653,17 @@ export class DataTable {
                     if (data.hasOwnProperty("sortable")) {
                         th.setAttribute("data-sortable", data.sortable)
                     }
-
+                    
                     if (data.hasOwnProperty("hidden")) {
                         if (data.hidden !== false) {
-                            this.columns().hide([column])
+                            this.columns().hide([col])
                         }
                     }
-
+                    
                     if (data.hasOwnProperty("sort") && data.select.length === 1) {
                         this.columns().sort(data.select[0], data.sort, true)
                     }
+
                 })
             })
         }
@@ -658,8 +675,8 @@ export class DataTable {
                     cell.data = cell.innerHTML
                 })
             })
-
-            if (this.selectedColumns.length) {
+            console.log(this.selectedColumns)
+            if (this.selectedColumns) {
                 this.data.forEach(row => {
                     Array.from(row.cells).forEach((cell, i) => {
                         if (this.selectedColumns.includes(i)) {
