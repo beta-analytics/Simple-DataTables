@@ -15,7 +15,7 @@ AddOption(
 OPTS_esbuild = {
     # 'minify'    : True, # Minified version exports x as Datatable 
     'bundle'    : True,
-    'format'    : 'esm',
+    'format'    : 'cjs',
     'sourcemap' : GetOption('dev'),
     'watch'     : GetOption('dev'),
     'target'    : 'chrome90,firefox90,edge90,safari15',
@@ -32,12 +32,22 @@ def genOpts(**kwargs):
     )
 
 
-js = Command(
-    'dist/sdt.min.js', # export file for scons
-    ['src/index.js'], # source file
+cjs = Command(
+    'dist/cjs/index.cjs',  # export file for scons
+    ['src/index.js'],  # source file
     'esbuild {raw} {opts} --outfile={out}'.format(
         raw  = 'src/index.js',
         opts = genOpts(),
+        out  = 'dist/cjs/index.cjs'
+    )
+)
+
+
+js = Command(
+    'dist/index.js',  # export file for scons
+    [cjs],  # source file
+    'browserify {raw} --minify --standalone simpleDatatables -o {out}'.format(
+        raw  = 'dist/cjs/index.cjs',
         out  = 'dist/sdt.min.js'
     )
 )
@@ -52,6 +62,6 @@ css = Command(
     )
 )
 
-css_build = Command('css-build', [css],'echo successfully built')
-js_build = Command('js-build', [js],'echo successfully built')
-Default('css-build', 'js-build')
+build_css = Command('build-css', [css],'echo successfully built')
+build_js = Command('build-js', [js],'echo successfully built')
+Default(build_css, build_js)
