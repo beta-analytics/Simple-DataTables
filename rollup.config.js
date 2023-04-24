@@ -14,51 +14,9 @@ export default [
             builtins(),
             globals(),
             babel({
-			           plugins: [
-				               '@babel/plugin-syntax-dynamic-import'
-			           ]
-		        }),
-            terser()
-        ],
-        output: // ES module version, for modern browsers with days split into separate file
-        {
-            dir: "dist/module",
-            format: "es",
-            sourcemap: true
-        }
-    },
-    {
-        input: 'src/index.js',
-        plugins: [
-            resolve({browser: true}),
-            commonjs(),
-            builtins(),
-            globals(),
-            babel({
-			           plugins: [
-				               '@babel/plugin-syntax-dynamic-import'
-			           ]
-		        }),
-            terser()
-        ],
-        output: // SystemJS version, for older browsers
-        {
-            dir: "dist/nomodule",
-            format: "system",
-            sourcemap: true
-        },
-    },
-    {
-        input: 'src/index.js',
-        plugins: [
-            resolve({browser: true}),
-            commonjs(),
-            builtins(),
-            globals(),
-            babel({
-			           plugins: [
-				               '@babel/plugin-syntax-dynamic-import'
-			           ]
+                    plugins: [
+                            '@babel/plugin-syntax-dynamic-import'
+                    ]
 		        }),
             terser()
         ],
@@ -66,7 +24,6 @@ export default [
         {
             dir: "dist",
             format: "cjs",
-            sourcemap: true
         }
     }
 ]
