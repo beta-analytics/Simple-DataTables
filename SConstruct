@@ -64,4 +64,4 @@ css = Command(
 
 build_css = Command('build-css', [css],'echo successfully built')
 build_js = Command('build-js', [js],'echo successfully built')
-Default(build_css, build_js)
+Default(build_js, build_css)
