@@ -600,6 +600,11 @@ export class DataTable {
             this.options.columns.forEach(data => {
                 // convert single column selection to array
                 if (!Array.isArray(data.select)) {
+                    let col = data.select 
+                    let indexExpression = `count(//table[@id='${this.table.id}']//th[a[contains(text(),'${col[0]}')]]/preceding-sibling::th)`
+                    
+                    let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
+                    data.select = result.numberValue
                     data.select = [data.select]
                 }
 
@@ -615,24 +620,13 @@ export class DataTable {
                 //     })
                 // }
                 if (data.hasOwnProperty("render") && typeof data.render === "function") {
-                    let col = data.select
-                    if (isNaN(col[0])) {
-                        let indexExpression = `count(//table/thead/tr/th[a/text()='${col[0]}']/preceding-sibling::th)`
-                        let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
-                        col[0] = result.numberValue
+                    this.selectedColumns = this.selectedColumns.concat(data.select)
+                    this.selectedColumns = this.selectedColumns.filter(element => typeof element !== 'string');
 
-                        this.selectedColumns = this.selectedColumns.concat(col[0])
-                        this.columnRenderers.push({
-                            columns: col,
-                            renderer: data.render
-                        })
-                    } else {
-                        this.selectedColumns = this.selectedColumns.concat(col[0])
-                        this.columnRenderers.push({
-                            columns: col,
-                            renderer: data.render
-                        })
-                    }
+                    this.columnRenderers.push({
+                        columns: data.select,
+                        renderer: data.render
+                    })
                 }
                     
                 // Add the data attributes to the th elements
@@ -675,7 +669,6 @@ export class DataTable {
                     cell.data = cell.innerHTML
                 })
             })
-            console.log(this.selectedColumns)
             if (this.selectedColumns) {
                 this.data.forEach(row => {
                     Array.from(row.cells).forEach((cell, i) => {
