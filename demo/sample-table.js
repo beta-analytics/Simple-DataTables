@@ -252,7 +252,7 @@ var headers = Object.keys(stock_1[0]);
 //Prepare html header
 var headerRowHTML='<tr>';
 for(var i=0;i<headers.length;i++){
-    headerRowHTML+='<th>'+headers[i]+'</th>';
+    headerRowHTML+='<th> <a>'+headers[i]+'</a> </th>';
 }
 headerRowHTML+='</tr>';       
     
@@ -276,20 +276,20 @@ table.innerHTML=headerRowHTML + allRecordsHTML;
 
 
 // Sample of Datatable Initilization
-let dt = new simpleDatatables.DataTable('table', {
+let dt = new simpleDatatables.DataTable('#display_json_data', {
     headers: true,
     columns : [
 
         {
-            select : 0,
+            select : "Name",
             render : function (data, td, tr) {
-                return data
+                return 'Helo'
             }
         },
         {
             select : 1,
             render : function (data, td, tr) {
-                return data
+                return "world"
             }
         },
     ],
