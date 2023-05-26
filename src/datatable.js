@@ -602,7 +602,7 @@ export class DataTable {
                 if (!Array.isArray(data.select)) {
                     let col = data.select
                     if(isNaN(col)){
-                        let indexExpression = `count(//table[@id="${this.table.id}"]//th[a[contains(text(),'${col}')]]/preceding-sibling::th)`
+                        let indexExpression = `count(//table[@id="${this.table.id}"]//th[a[contains(text(),"${col}")]]/preceding-sibling::th)`
                         let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
                         data.select = result.numberValue
                         data.select = [data.select]
