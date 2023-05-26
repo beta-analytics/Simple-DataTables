@@ -29,6 +29,7 @@ export class DataTable {
                 ...options.labels
             }
         }
+                console.log(this.options)
 
         if (typeof table === "string") {
             table = document.querySelector(table)
@@ -596,16 +597,18 @@ export class DataTable {
 
         // Check for the columns option
         if (this.options.columns && this.headers.length) {
-
             this.options.columns.forEach(data => {
                 // convert single column selection to array
                 if (!Array.isArray(data.select)) {
-                    let col = data.select 
-                    let indexExpression = `count(//table[@id='${this.table.id}']//th[a[contains(text(),'${col}')]]/preceding-sibling::th)`
-                    
-                    let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
-                    data.select = result.numberValue
-                    data.select = [data.select]
+                    let col = data.select
+                    if(isNaN(col)){
+                        let indexExpression = `count(//table[@id='${this.table.id}']//th[a[contains(text(),'${col}')]]/preceding-sibling::th)`
+                        let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
+                        data.select = result.numberValue
+                        data.select = [data.select]
+                    } else {
+                        data.select = [data.select]
+                    }
                 }
 
                 // if (data.hasOwnProperty("selectByName")) {
