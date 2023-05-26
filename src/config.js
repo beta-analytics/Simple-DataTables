@@ -41,7 +41,7 @@ export const defaultConfig = {
 
     // Customise the layout
     layout: {
-        top: "{select}{search}{select}",
+        top: "{select}{search}",
         bottom: "{info}{pager}"
     }
 }
