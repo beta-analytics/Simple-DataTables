@@ -29,7 +29,6 @@ export class DataTable {
                 ...options.labels
             }
         }
-                console.log(this.options)
 
         if (typeof table === "string") {
             table = document.querySelector(table)
