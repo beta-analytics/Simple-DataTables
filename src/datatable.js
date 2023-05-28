@@ -1,7 +1,7 @@
-import {Rows} from "./rows"
-import {Columns} from "./columns"
-import {dataToTable} from "./table"
-import {defaultConfig} from "./config"
+import { Rows } from "./rows"
+import { Columns } from "./columns"
+import { dataToTable } from "./table"
+import { defaultConfig } from "./config"
 import {
     isObject,
     isJson,
@@ -111,7 +111,7 @@ export class DataTable {
             if (this.options.plugins) {
                 Object.entries(this.options.plugins).forEach(([plugin, options]) => {
                     if (this[plugin] && typeof this[plugin] === "function") {
-                        this[plugin] = this[plugin](options, {createElement})
+                        this[plugin] = this[plugin](options, { createElement })
 
                         // Init plugin
                         if (options.enabled && this[plugin].init && typeof this[plugin].init === "function") {
@@ -131,15 +131,15 @@ export class DataTable {
     render(type) {
         if (type) {
             switch (type) {
-            case "page":
-                this.renderPage()
-                break
-            case "pager":
-                this.renderPager()
-                break
-            case "header":
-                this.renderHeader()
-                break
+                case "page":
+                    this.renderPage()
+                    break
+                case "pager":
+                    this.renderPager()
+                    break
+                case "header":
+                    this.renderHeader()
+                    break
             }
 
             return false
@@ -221,6 +221,7 @@ export class DataTable {
         })
 
         // Template for custom layouts
+        console.log(options.layout.top)
         template += "<div class='dataTable-top'>"
         template += options.layout.top
         template += "</div>"
@@ -250,18 +251,50 @@ export class DataTable {
             // Create the options
             options.perPageSelect.forEach(val => {
                 const selected = val === options.perPage
+                console.log("selected:", selected)
                 const option = new Option(val, val, selected, selected)
                 select.add(option)
             })
 
             // Custom label
-            wrap = wrap.replace("{select}", select.outerHTML)
+            wrap = wrap.replace("{pageselect}", select.outerHTML)
 
             // Selector placement
-            template = template.replace("{select}", wrap)
+            template = template.replace("{pageselect}", wrap)
         } else {
-            template = template.replace("{select}", "")
+            template = template.replace("{pageselect}", "")
         }
+
+        // ColSearch Select
+        if(options.colSearchSelect){
+            let wrap = "<div class='dataTable-colsearchdropdown'><label>"
+            wrap += options.labels.colSearch //{colsearchselect} column
+            wrap += "</label></div>"
+
+            // Create the select
+            const select = createElement("select", {
+                class: "dataTable-colselector"
+            })
+
+            // Create the options dynamically from provided columns
+            options.columns.forEach((cols, index) => {
+                let selected = index == 0
+                const option = new Option(cols.render(), cols.render(), selected, selected)
+                select.add(option)
+            })
+
+            // Select element placement
+            wrap = wrap.replace("{colsearchselect}", select.outerHTML)
+
+            console.log(wrap)
+
+            // Selector placement
+            template = template.replace("{colsearchselect}", wrap)
+
+        }else {
+            template = template.replace("{colsearchselect}", "")
+        }
+
 
         // Searchable
         if (options.searchable) {
@@ -539,6 +572,15 @@ export class DataTable {
             }
         }
 
+        // Cols Selector
+        const colsSelector = this.wrapper.querySelector(".dataTable-colselector")
+        let selectedCol = colsSelector.value
+        if(colsSelector){
+            colsSelector.onchange = ()=>{
+                selectedCols = colsSelector.value
+            }
+        }
+
         // Search input
         if (options.searchable) {
             this.input = this.wrapper.querySelector(".dataTable-input")
@@ -600,8 +642,8 @@ export class DataTable {
                 // convert single column selection to array
                 if (!Array.isArray(data.select)) {
                     let col = data.select
-                    if(isNaN(col)){
-                        let indexExpression = `count(//table[@id="${this.table.id}"]//th[a[contains(text(),"${col}")]]/preceding-sibling::th)`
+                    if (isNaN(col)) {
+                        let indexExpression = `count(//table[@id="${this.table.id}"]//th[a[contains(text(),'${col}')]]/preceding-sibling::th)`
                         let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
                         data.select = result.numberValue
                         data.select = [data.select]
@@ -630,7 +672,7 @@ export class DataTable {
                         renderer: data.render
                     })
                 }
-                    
+
                 // Add the data attributes to the th elements
                 data.select.forEach(column => {
                     var col = column
@@ -649,13 +691,13 @@ export class DataTable {
                     if (data.hasOwnProperty("sortable")) {
                         th.setAttribute("data-sortable", data.sortable)
                     }
-                    
+
                     if (data.hasOwnProperty("hidden")) {
                         if (data.hidden !== false) {
                             this.columns().hide([col])
                         }
                     }
-                    
+
                     if (data.hasOwnProperty("sort") && data.select.length === 1) {
                         this.columns().sort(data.select[0], data.sort, true)
                     }
@@ -826,15 +868,14 @@ export class DataTable {
                     this.headerTable.tHead = thd
 
                     // Compensate for scrollbars.
-                    this.headerTable.parentElement.style.paddingRight = `${
-                        this.headerTable.clientWidth -
+                    this.headerTable.parentElement.style.paddingRight = `${this.headerTable.clientWidth -
                         this.table.clientWidth +
                         parseInt(
                             this.headerTable.parentElement.style.paddingRight ||
                             '0',
                             10
                         )
-                    }px`
+                        }px`
 
                     if (container.scrollHeight > container.clientHeight) {
                         // scrollbars on one page means scrollbars on all pages.
@@ -914,8 +955,10 @@ export class DataTable {
 
         this.clear()
 
+        console.log(this.data[0])
         this.data.forEach((row, idx) => {
             const inArray = this.searchData.includes(row)
+            console.log(inArray)
 
             // https://github.com/Mobius1/Vanilla-DataTables/issues/12
             const doesQueryMatch = query.split(" ").reduce((bool, word) => {
