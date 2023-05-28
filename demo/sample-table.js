@@ -282,13 +282,13 @@ let dt = new simpleDatatables.DataTable('#display_json_data', {
         {
             select: 0,
             render: function (data, td, tr) {
-                return 'Name'
+                return data
             }
         },
         {
             select: 1,
             render: function (data, td, tr) {
-                return "Stock No"
+                return data
             }
         },
     ],
