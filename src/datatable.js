@@ -221,7 +221,6 @@ export class DataTable {
         })
 
         // Template for custom layouts
-        console.log(options.layout.top)
         template += "<div class='dataTable-top'>"
         template += options.layout.top
         template += "</div>"
@@ -251,7 +250,6 @@ export class DataTable {
             // Create the options
             options.perPageSelect.forEach(val => {
                 const selected = val === options.perPage
-                console.log("selected:", selected)
                 const option = new Option(val, val, selected, selected)
                 select.add(option)
             })
@@ -267,10 +265,7 @@ export class DataTable {
 
         // ColSearch Select
         if(options.colSearchSelect){
-            let wrap = "<div class='dataTable-colsearchdropdown'><label>"
-            wrap += options.labels.colSearch //{colsearchselect} column
-            wrap += "</label></div>"
-
+            let wrap = `<div class='dataTable-colsearchdropdown'><label>${options.labels.colSearch }</label></div>`
             // Create the select
             const select = createElement("select", {
                 class: "dataTable-colselector"
@@ -286,7 +281,6 @@ export class DataTable {
             // Select element placement
             wrap = wrap.replace("{colsearchselect}", select.outerHTML)
 
-            console.log(wrap)
 
             // Selector placement
             template = template.replace("{colsearchselect}", wrap)
@@ -577,7 +571,7 @@ export class DataTable {
         let selectedCol = colsSelector.value
         if(colsSelector){
             colsSelector.onchange = ()=>{
-                selectedCols = colsSelector.value
+                selectedCol = colsSelector.value
             }
         }
 
@@ -585,7 +579,7 @@ export class DataTable {
         if (options.searchable) {
             this.input = this.wrapper.querySelector(".dataTable-input")
             if (this.input) {
-                this.input.addEventListener("keyup", () => this.search(this.input.value), false)
+                this.input.addEventListener("keyup", () => this.search(this.input.value, selectedCol), false)
             }
         }
 
@@ -943,7 +937,7 @@ export class DataTable {
 
         this.currentPage = 1
         this.searching = true
-        this.searchData = []
+        this.searchData  = []
 
         if (!query.length) {
             this.searching = false
@@ -955,10 +949,18 @@ export class DataTable {
 
         this.clear()
 
-        console.log(this.data[0])
-        this.data.forEach((row, idx) => {
+        //calculate column index based on selected column
+        let colIndex
+        this.columnRenderers.forEach((eachCol)=>{
+            if(eachCol.renderer() === cols){
+                colIndex = eachCol.columns[0]
+            }else{
+                return
+            }
+        })
+
+        this.data.forEach((row, idx) => { 
             const inArray = this.searchData.includes(row)
-            console.log(inArray)
 
             // https://github.com/Mobius1/Vanilla-DataTables/issues/12
             const doesQueryMatch = query.split(" ").reduce((bool, word) => {
@@ -967,8 +969,8 @@ export class DataTable {
                 let content = null
 
                 for (let x = 0; x < row.cells.length; x++) {
-                    if (cols != undefined && !cols.includes(x)) continue
-                    cell = row.cells[x]
+                    // if (cols != undefined && !cols.includes(x)) continue
+                    cell = row.cells[colIndex]
                     content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.textContent
 
                     if (
