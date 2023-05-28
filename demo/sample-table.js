@@ -245,51 +245,50 @@ var stock_1 = [
         "Symbol": "KISTPO"
     },
 ]
-        
+
 //Get the headers from JSON data
 var headers = Object.keys(stock_1[0]);
-    
+
 //Prepare html header
-var headerRowHTML='<tr>';
-for(var i=0;i<headers.length;i++){
-    headerRowHTML+='<th> <a>'+headers[i]+'</a> </th>';
+var headerRowHTML = '<tr>';
+for (var i = 0; i < headers.length; i++) {
+    headerRowHTML += '<th> <a>' + headers[i] + '</a> </th>';
 }
-headerRowHTML+='</tr>';       
-    
+headerRowHTML += '</tr>';
+
 //Prepare all the employee records as HTML
-var allRecordsHTML='';
-for(var i=0;i<stock_1.length;i++){
-    
+var allRecordsHTML = '';
+for (var i = 0; i < stock_1.length; i++) {
+
     //Prepare html row
-    allRecordsHTML+='<tr>';
-    for(var j=0;j<headers.length;j++){
-        var header=headers[j];
-        allRecordsHTML+='<td>'+stock_1[i][header]+'</td>';
+    allRecordsHTML += '<tr>';
+    for (var j = 0; j < headers.length; j++) {
+        var header = headers[j];
+        allRecordsHTML += '<td>' + stock_1[i][header] + '</td>';
     }
-    allRecordsHTML+='</tr>';
-        
+    allRecordsHTML += '</tr>';
+
 }
-    
+
 //Append the table header and all records
-var table=document.getElementById("display_json_data");
-table.innerHTML=headerRowHTML + allRecordsHTML;
+var table = document.getElementById("display_json_data");
+table.innerHTML = headerRowHTML + allRecordsHTML;
 
 
 // Sample of Datatable Initilization
 let dt = new simpleDatatables.DataTable('#display_json_data', {
     headers: true,
-    columns : [
-
+    columns: [
         {
-            select : "Name",
-            render : function (data, td, tr) {
-                return 'Helo'
+            select: 0,
+            render: function (data, td, tr) {
+                return 'Name'
             }
         },
         {
-            select : 1,
-            render : function (data, td, tr) {
-                return "world"
+            select: 1,
+            render: function (data, td, tr) {
+                return "Stock No"
             }
         },
     ],
