@@ -10,6 +10,7 @@ export const defaultConfig = {
     paging: true,
     perPage: 10,
     perPageSelect: [5, 10, 15, 20, 25],
+    colSelect: ['hello', 'world'],
     nextPrev: true,
     firstLast: false,
     prevText: "&lsaquo;",
@@ -35,14 +36,14 @@ export const defaultConfig = {
     labels: {
         placeholder: "Search...", // The search input placeholder
         perPage: "{pageselect} entries per page", // per-page dropdown label
-        colSearch: "Search from {colsearchselect} column", //column selector to search
+        colSelect: "Search from {colselect} column", //column selector to search
         noRows: "No entries found", // Message shown when there are no search results
         info: "Showing {start} to {end} of {rows} entries" //
     },
 
     // Customise the layout
     layout: {
-        top: "{pageselect}{colsearchselect}{search}",
+        top: "{pageselect}{colselect}{search}",
         bottom: "{info}{pager}"
     }
 }
