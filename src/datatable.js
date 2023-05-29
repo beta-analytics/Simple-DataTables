@@ -263,14 +263,14 @@ export class DataTable {
             template = template.replace('{pageselect}', '')
         }
 
-        // Column select
+        // Column selector
         if(options.colSelect){
             let wrap = `<div class="dataTable-dropdown"><label>${options.labels.colSelect}</label></div>`
             let colOptions = Array.from(this.body.rows[0].childNodes)
 
              // Create the select
              const select = createElement('select', {
-                class: 'dataTable-selector'
+                class: 'dataTable-columnselector'
             })
 
             // Create the options
@@ -553,10 +553,10 @@ export class DataTable {
         const options = this.options
         // Per page selector
         if (options.perPageSelect) {
-            const selector = this.wrapper.querySelector('.dataTable-selector')
-            if (selector) {
+            const pageSelector = this.wrapper.querySelector('.dataTable-selector')
+            if (pageSelector) {
                 // Change per page
-                selector.addEventListener('change', () => {
+                pageSelector.addEventListener('change', () => {
                     options.perPage = parseInt(selector.value, 10)
                     this.update()
 
@@ -567,11 +567,22 @@ export class DataTable {
             }
         }
 
+        //column selector
+        const columnselector = this.wrapper.querySelector('.dataTable-columnselector')
+        let selectedColumn = columnselector.value
+        if (options.colSelect){
+            if(columnselector){
+                columnselector.addEventListener('change', (e)=>{
+                    selectedColumn = e.target.value
+                })
+            }
+        }
+
         // Search input
         if (options.searchable) {
             this.input = this.wrapper.querySelector('.dataTable-input')
             if (this.input) {
-                this.input.addEventListener('keyup', () => this.search(this.input.value), false)
+                this.input.addEventListener('keyup', () => this.search(this.input.value, selectedColumn), false)
             }
         }
 
@@ -942,6 +953,15 @@ export class DataTable {
 
         this.clear()
 
+        // find selected column's index
+        let columnIndex
+        Array.from(this.data[0].childNodes).forEach((col, idx)=>{
+            if(col.textContent === cols){
+                columnIndex = idx
+            }
+        })
+        console.log(columnIndex)
+
         this.data.forEach((row, idx) => {
             const inArray = this.searchData.includes(row)
 
@@ -952,8 +972,8 @@ export class DataTable {
                 let content = null
 
                 for (let x = 0; x < row.cells.length; x++) {
-                    if (cols != undefined && !cols.includes(x)) continue
-                    cell = row.cells[x]
+                    // if (cols != undefined && !cols.includes(x)) continue
+                    cell = row.cells[columnIndex]
                     content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.textContent
 
                     if (
