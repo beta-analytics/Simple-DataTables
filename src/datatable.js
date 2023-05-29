@@ -266,6 +266,7 @@ export class DataTable {
         // Column select
         if(options.colSelect){
             let wrap = `<div class="dataTable-dropdown"><label>${options.labels.colSelect}</label></div>`
+            let colOptions = Array.from(this.body.rows[0].childNodes)
 
              // Create the select
              const select = createElement('select', {
@@ -273,8 +274,9 @@ export class DataTable {
             })
 
             // Create the options
-            options.colSelect.forEach((colName, idx) => {
+            colOptions.forEach((col, idx) => {
                 const selected = idx === 0
+                let colName = col.textContent
                 const option = new Option(colName, colName, selected, selected)
                 select.add(option)
             })
