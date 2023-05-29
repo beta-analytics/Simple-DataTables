@@ -960,8 +960,7 @@ export class DataTable {
                 columnIndex = idx
             }
         })
-        console.log(columnIndex)
-
+        
         this.data.forEach((row, idx) => {
             const inArray = this.searchData.includes(row)
 
