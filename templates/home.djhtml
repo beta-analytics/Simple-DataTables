@@ -4,14 +4,16 @@
 
 <div class="tab-pane fade show active row" id="home">
     <div id="table-test" class="col p-4">
-        <script>
+        <script type="module">
+            import * as sdt from '/dist/cjs/index.mjs';
+
             fetch(`/t`, {
                 method: 'POST'
             }).then(function(response) {
                 response.text().then(function(responseText) {
                     document.getElementById('table-test').innerHTML = responseText
                 }).then(function(responseText) {
-                    new simpleDatatables.DataTable('#table', {
+                    new sdt.DataTable('#table', {
                         headers : true,
                         columns : [
                         {
