@@ -18,6 +18,11 @@ def dist(filepath):
     return flask.send_from_directory('./src/dist', filepath)
 
 
+@app.get('/src/<path:filepath>')
+def src(filepath):
+    return flask.send_from_directory('./src/src', filepath)
+
+
 @app.get('/')
 def test():
     path  = os.path.abspath('.' + '/vendors/announcements30.pickle')  # noqa:401
