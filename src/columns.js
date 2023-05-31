@@ -139,9 +139,16 @@ export class Columns {
                     dt.hiddenColumns.push(column)
                 }
             })
-
             this.rebuild()
         }
+    }
+
+    align(columns) {
+        this.dt.data.forEach((row, i) => {
+            if (columns.length) {
+                row.cells[columns].setAttribute('style', 'text-align:right;')
+            }
+        })
     }
 
     /**
