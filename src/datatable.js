@@ -694,6 +694,12 @@ export class DataTable {
                             this.columns().hide([col])
                         }
                     }
+
+                    if (data.hasOwnProperty('align')) {
+                        if (data.align == 'right') {
+                            this.columns().align([col])
+                        }
+                    }
                     
                     if (data.hasOwnProperty('sort') && data.select.length === 1) {
                         this.columns().sort(data.select[0], data.sort, true)
