@@ -10,7 +10,7 @@ export const defaultConfig = {
     paging: true,
     perPage: 10,
     perPageSelect: [5, 10, 15, 20, 25],
-    colSelect: ['hello', 'world'],
+    colSelect: ['All'],
     nextPrev: true,
     firstLast: false,
     prevText: '&lsaquo;',
