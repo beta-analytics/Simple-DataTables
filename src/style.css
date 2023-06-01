@@ -25,7 +25,16 @@
 	float: right;
 }
 
-.dataTable-selector {
+.dataTable-search{
+	display: flex;
+	align-items: center;
+}
+
+.dataTable-columnselector{
+	border-right: none
+}
+
+select {
 	padding: 6px;
 }
 
