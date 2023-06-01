@@ -36,7 +36,7 @@ export const defaultConfig = {
     labels: {
         placeholder: 'Search...', // The search input placeholder
         perPage: '{pageselect} entries per page', // per-page dropdown label
-        colSelect: 'Search from {colselect} column', // column selector to search
+        colSelect: '{colselect}', // column selector to search
         noRows: 'No entries found', // Message shown when there are no search results
         info: 'Showing {start} to {end} of {rows} entries',
     },
