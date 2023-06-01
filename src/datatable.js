@@ -262,11 +262,16 @@ export class DataTable {
         } else {
             template = template.replace('{pageselect}', '')
         }
+        
+
+        // Searchable
+        if (options.searchable) {
 
         // Column selector
-        if(options.colSelect){
-            let wrap = `<div class="dataTable-dropdown"><label>${options.labels.colSelect}</label></div>`
-            let colOptions = Array.from(this.body.rows[0].childNodes)
+        let wrap
+            if(options.colSelect){
+            wrap = `<div class="dataTable-dropdown"><label>${options.labels.colSelect}</label></div>`
+            let colOptions = [...options.colSelect, ...this.headers]
 
              // Create the select
              const select = createElement('select', {
@@ -276,7 +281,7 @@ export class DataTable {
             // Create the options
             colOptions.forEach((col, idx) => {
                 const selected = idx === 0
-                let colName = col.textContent
+                let colName = (col === 'All') ? 'All' : col.textContent
                 const option = new Option(colName, colName, selected, selected)
                 select.add(option)
             })
@@ -285,16 +290,13 @@ export class DataTable {
             wrap = wrap.replace('{colselect}', select.outerHTML)
 
             // Selector placement
-            template = template.replace('{colselect}', wrap)
+            template = template.replace('{colselect}', '')
         }else{
             template = template.replace('{colSelect}', '')
         }
-        
 
-        // Searchable
-        if (options.searchable) {
             const form =
-                `<div class='dataTable-search'><input class='dataTable-input' placeholder='${options.labels.placeholder}' type='text'></div>`
+                `<div class='dataTable-search'>${wrap}<input class='dataTable-input' type='search' placeholder='${options.labels.placeholder}' type='text'></div>`
 
             // Search input placement
             template = template.replace('{search}', form)
@@ -574,6 +576,10 @@ export class DataTable {
             if(columnselector){
                 columnselector.addEventListener('change', (e)=>{
                     selectedColumn = e.target.value
+
+                    if(this.wrapper.querySelector('.dataTable-input').value){
+                        this.search(this.input.value, selectedColumn)
+                    }
                 })
             }
         }
@@ -582,6 +588,7 @@ export class DataTable {
         if (options.searchable) {
             this.input = this.wrapper.querySelector('.dataTable-input')
             if (this.input) {
+                this.input.addEventListener('search', () => this.search(this.input.value, selectedColumn), false)
                 this.input.addEventListener('keyup', () => this.search(this.input.value, selectedColumn), false)
             }
         }
@@ -961,11 +968,15 @@ export class DataTable {
 
         // find selected column's index
         let columnIndex
-        Array.from(this.data[0].childNodes).forEach((col, idx)=>{
-            if(col.textContent === cols){
-                columnIndex = idx
-            }
-        })
+        if(cols == 'All'){
+            columnIndex = cols
+        }else{
+            Array.from(this.headers).forEach((col, idx)=>{
+                if(col.textContent === cols){
+                    columnIndex = idx
+                }
+            })
+        }
         
         this.data.forEach((row, idx) => {
             const inArray = this.searchData.includes(row)
@@ -978,7 +989,7 @@ export class DataTable {
 
                 for (let x = 0; x < row.cells.length; x++) {
                     // if (cols != undefined && !cols.includes(x)) continue
-                    cell = row.cells[columnIndex]
+                    cell = ('string' === typeof(columnIndex)) ? row.cells[x] : row.cells[columnIndex]
                     content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.textContent
 
                     if (

@@ -8,8 +8,7 @@ from SCons.Script import (
 AddOption(
     '--dev',
     action  = 'store_true',
-    help    = 'installation prefix',
-    default = False,
+    help    = 'installation prefix'
 )
 
 OPTS_esbuild = {
@@ -43,14 +42,14 @@ cjs = Command(
 )
 
 
-# js = Command(
-#     'dist/index.js',  # export file for scons
-#     [cjs],  # source file
-#     'browserify {raw} --minify --standalone simpleDatatables -o {out}'.format( # noqa 401
-#         raw  = 'dist/cjs/index.cjs',
-#         out  = 'dist/sdt.min.js'
-#     )
-# )
+js = Command(
+    'dist/index.js',  # export file for scons
+    [cjs],  # source file
+    'browserify {raw} --minify --standalone simpleDatatables -o {out}'.format( # noqa 401
+        raw  = 'dist/cjs/index.cjs',
+        out  = 'dist/sdt.min.js'
+    )
+)
 
 
 css = Command(
