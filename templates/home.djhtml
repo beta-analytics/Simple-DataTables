@@ -9,25 +9,33 @@
 
             fetch(`/t`, {
                 method: 'POST'
-            }).then(function(response) {
-                response.text().then(function(responseText) {
+            }).then(function (response) {
+                response.text().then(function (responseText) {
                     document.getElementById('table-test').innerHTML = responseText
-                }).then(function(responseText) {
+                }).then(function (responseText) {
                     new sdt.DataTable('#table', {
-                        headers : true,
-                        columns : [
-                        {
-                            select : 'stock_symbol',
-                            render : function (data, td, tr) {
-                                return 'Hello Stock'
-                            }
-                        },
-                        {
-                            select : 'announcedOn',
-                            render : function (data, td, tr) {
-                                return 'Hello world'
-                            }
-                        },           
+                        headers: true,
+                        colDef: [
+                            {
+                                targets: [0],
+                                style : {
+                                    color : "blue"
+                                }
+                            },
+                        ],
+                        columns: [
+                            {
+                                select: 'stock_symbols',
+                                render: function (data, td, tr) {
+                                    return 'Hello stock'
+                                }
+                            },
+                            {
+                                select: 'announcedOn',
+                                render: function (data, td, tr) {
+                                    return 'Hello world'
+                                }
+                            },
                         ],
                     })
                 })
@@ -36,9 +44,9 @@
     </div>
 </div>
 <script>
-    const observer = new MutationObserver(function() {
-   
-})
+    const observer = new MutationObserver(function () {
+
+    })
 
     let tableDiv = document.getElementById('table-test')
     observer.observe(tableDiv, { childList: true })
