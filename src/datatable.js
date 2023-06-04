@@ -269,12 +269,12 @@ export class DataTable {
 
         // Column selector
         let wrap
-            if(options.colSelect){
+        if(options.colSelect){
             wrap = `<div class="dataTable-dropdown"><label>${options.labels.colSelect}</label></div>`
             let colOptions = [...options.colSelect, ...this.headers]
 
-             // Create the select
-             const select = createElement('select', {
+            // Create the select
+            const select = createElement('select', {
                 class: 'dataTable-columnselector'
             })
 
@@ -286,13 +286,13 @@ export class DataTable {
                 select.add(option)
             })
 
-            // Custom label
+        // Custom label
             wrap = wrap.replace('{colselect}', select.outerHTML)
 
-            // Selector placement
+        // Selector placement
             template = template.replace('{colselect}', '')
-        }else{
-            template = template.replace('{colSelect}', '')
+        } else {
+        template = template.replace('{colSelect}', '')
         }
 
             const form =
@@ -520,7 +520,6 @@ export class DataTable {
 
         if (this.headers && this.headers.length) {
             this.headers.forEach((th, i) => {
-
                 this.labels[i] = th.textContent
 
                 if (th.firstElementChild && th.firstElementChild.classList.contains('dataTable-sorter')) {
@@ -559,7 +558,7 @@ export class DataTable {
             if (pageSelector) {
                 // Change per page
                 pageSelector.addEventListener('change', () => {
-                    options.perPage = parseInt(selector.value, 10)
+                    options.perPage = parseInt(pageSelector.value, 10)
                     this.update()
 
                     this.fixHeight()
@@ -821,7 +820,6 @@ export class DataTable {
      * @return {Void}
      */
     fixColumns() {
-
         if ((this.options.scrollY.length || this.options.fixedColumns) && this.activeHeaders && this.activeHeaders.length) {
             let cells
             let hd = false
@@ -865,10 +863,10 @@ export class DataTable {
                     const container = this.table.parentElement
                     if (!this.headerTable) {
                         this.headerTable = createElement('table', {
-                            class: 'dataTable-table'
+                            class: 'dataTable-table',
                         })
                         const headercontainer = createElement('div', {
-                            class: 'dataTable-headercontainer'
+                            class: 'dataTable-headercontainer',
                         })
                         headercontainer.appendChild(this.headerTable)
                         container.parentElement.insertBefore(headercontainer, container)
