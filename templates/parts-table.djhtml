@@ -1,0 +1,24 @@
+<div class="row bg-muted table-responsive">
+    <table id="table-{{links}}" class="table table-hover">
+        <thead>
+            <tr>
+                {% for header in query.headers %}
+                <th>
+                    {{header}}
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in query.data %}
+                <tr>
+                    {% for d in row %}
+                        <td>{{ d }}</td>  
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
