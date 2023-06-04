@@ -42,7 +42,6 @@ def test():
 def table():
     path  = os.path.abspath('.' + '/vendors/announcements30.pickle')  # noqa:401
     query = qdump.load(path)
-    print(query[0])
     headers = [k for k,v in query[0].items()]
     print(headers)
     return flask.render_template(
@@ -56,9 +55,7 @@ def table():
 def t():
     path  = os.path.abspath('.' + '/vendors/announcements30.pickle')  # noqa:401
     query = qdump.load(path)
-    print(query[0])
     headers = [k for k,v in query[0].items()]
-    print(headers)
     return flask.render_template(
         '/t.djhtml',
         query = query,
@@ -78,7 +75,6 @@ def tabber(id):
     temp_path = f'/vendors/{id}.pickle'
     path  = os.path.abspath('.' + temp_path)  # noqa:401
     query = qdump.load(path)
-    print(query)
     return flask.render_template(
         '/parts-table.djhtml',
         query = query,
