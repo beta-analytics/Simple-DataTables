@@ -1,0 +1,108 @@
+{% extends '/base.djhtml' %}
+
+{% block content %}
+<script>
+    function corp_loader(api, divId) {
+        fetch(api, {
+            method: 'POST',
+            body: JSON.stringify({})
+        }).then(function (response) {
+            if (!response.ok) return;
+            response.text().then(function (responseText) {
+                document.getElementById(`tab-${divId}`).innerHTML = responseText
+            }).then(function() {
+                let dt = new simpleDatatables.DataTable(`#table-${divId}`, {
+                    headers: false,
+                    layout: { top: '', bottom: '' },
+                    displayLength: -1,
+                    columns : [
+                        {
+                            select : 'Fiscal Year',
+                            render  : function(data, td, tr) {
+                                td.style.textAlign = 'right'
+                                if (null == data) return
+                                let y = parseInt(data.toString().slice(4))
+                                return `${y-1}/${y} (${y+56-2000}/${y+57-2000})`
+                            },
+                        },
+                        {
+                            select : 'Description',
+                            render : function (data, td, tr) {
+                                td.style.textAlign = 'left'
+                                return data
+                            }
+                        },
+                        {
+                            select : 'Event Date',
+                            render : function (data, td, tr) {
+                                td.style.textAlign = 'left'
+                                return i18nDateShort.format(new Date(data))
+                            }
+                        },
+                        {
+                            select : 'Announced Date',
+                            render : function (data, td, tr) {
+                                td.style.textAlign = 'left'
+                                return i18nDateShort.format(new Date(data))
+                            }
+                        },
+                            
+                    ],
+                })
+            })
+        })
+    }
+</script>
+
+{% set tab_buttons = (
+    ('announcements', 'tab-announcements', 'Announcements'),
+    ('meetings', 'tab-meetings', 'Meetings'),
+    ('auctions', 'tab-auctions', 'Auction'),
+    ('bookClosures', 'tab-bookClosures', 'Book Closure'),
+    ('issue', 'tab-issue', 'Issue'),
+    ('rights', 'tab-rights', 'Right Share'),
+    ('dividends', 'tab-dividends', 'Dividends'),
+) %}
+
+<div id="corp_action" class="container py-4" style="scroll-margin-top: 200px;">
+    <a href="#">
+        <h2 class="section-heading pb-5">Tabber Test</h2>
+    </a>
+    <div class="container">
+        <ul class="nav nav-tabs">
+            {% for id, tab, label in tab_buttons %}
+                <li id="{{id}}" class="nav-item corp-toggler">
+                    <a class="nav-link{% if id == 'announcements' %} active {% endif %}" data-bs-toggle="tab" data-bs-target="#{{tab}}">{{label}}</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <div class="tab-content pb-4">
+            {% for id, tab, label in tab_buttons %}
+                <div id="{{ tab }}" class="tab-pane fade show active" role="tabpanel">
+                    {% if id == 'announcements' %}
+                        <script>
+                            corp_loader(`/api/fe/profile/announcements`, 'announcements')
+                        </script>
+                    {% endif %} 
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    let corpBtn = document.querySelectorAll('.corp-toggler')
+    
+    for (let i = 0; i < corpBtn.length; i++) {
+        let divId = corpBtn[i].id
+        let api = `/api/fe/profile/${divId}`
+        let element = document.getElementById(divId)
+        
+        element.addEventListener('click', function () {
+            corp_loader(api, divId)
+        })
+    }
+</script>
+
+{% endblock %}
