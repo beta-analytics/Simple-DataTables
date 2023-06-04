@@ -1,4 +1,4 @@
-import {sortItems} from "./helpers"
+import {sortItems} from './helpers'
 
 /**
  * Columns API
@@ -16,7 +16,7 @@ export class Columns {
      * @return {Void}
      */
     swap(columns) {
-        if (columns.length && columns.length === 2) {
+        if (columns.length && 2 === columns.length) {
             const cols = []
 
             // Get the current column indexes
@@ -51,17 +51,17 @@ export class Columns {
             [],
             [],
             [],
-            []
+            [],
         ]
 
         const dt = this.dt
 
         // Convert named headers to indexes
-        if (typeof columns[0] === 'string') {
+        if ('string' === typeof columns[0]) {
             let iMap = Object.fromEntries(
                 dt.options.data.headers.map(function (header, idx) {
                     return [header, idx]
-                })
+                }),
             )
 
             columns = columns.map(function (name) {
@@ -72,7 +72,7 @@ export class Columns {
         // Order the headers
         columns.forEach((column, x) => {
             h = dt.headers[column]
-            s = h.getAttribute("data-sortable") !== "false"
+            s = 'false' !== h.getAttribute('data-sortable')
             a = h.cloneNode(true)
             a.originalCellIndex = x
             a.sortable = s
@@ -95,7 +95,7 @@ export class Columns {
 
             c.dataIndex = d.dataIndex = i
 
-            if (row.searchIndex !== null && row.searchIndex !== undefined) {
+            if (null !== row.searchIndex && row.searchIndex !== undefined) {
                 c.searchIndex = d.searchIndex = row.searchIndex
             }
 
@@ -143,11 +143,19 @@ export class Columns {
         }
     }
 
-    align(columns) {
+    style(style, columns) {
         this.dt.data.forEach((row, i) => {
             if (columns.length) {
-                row.cells[columns].setAttribute('style', 'text-align:right;')
+                Object.assign(row.cells[columns].style, style)
+                
             }
+        })
+    }
+
+    align(align, columns, header) {
+        header.style.textAlign = align
+        this.dt.data.forEach((row, i) => {
+            row.cells[columns].style.textAlign = align  
         })
     }
 
@@ -162,7 +170,7 @@ export class Columns {
 
             columns.forEach(column => {
                 index = dt.hiddenColumns.indexOf(column)
-                if (index > -1) {
+                if (-1 < index) {
                     dt.hiddenColumns.splice(index, 1)
                 }
             })
@@ -199,12 +207,12 @@ export class Columns {
      */
     add(data) {
         let td
-        const th = document.createElement("th")
+        const th = document.createElement('th')
 
         if (!this.dt.headers.length) {
             this.dt.insert({
                 headers: [data.header],
-                data: data.data.map(i => [i])
+                data: data.data.map(i => [i]),
             })
             this.rebuild()
             return
@@ -217,14 +225,14 @@ export class Columns {
                 th.innerHTML = data.header
             }
         } else {
-            th.innerHTML = ""
+            th.innerHTML = ''
         }
 
         this.dt.headers.push(th)
 
         this.dt.data.forEach((row, i) => {
             if (data.data[i]) {
-                td = document.createElement("td")
+                td = document.createElement('td')
 
                 if (data.data[i].nodeName) {
                     td.appendChild(data.data[i])
@@ -243,15 +251,15 @@ export class Columns {
         })
 
         if (data.type) {
-            th.setAttribute("data-type", data.type)
+            th.setAttribute('data-type', data.type)
         }
         if (data.format) {
-            th.setAttribute("data-format", data.format)
+            th.setAttribute('data-format', data.format)
         }
 
-        if (data.hasOwnProperty("sortable")) {
+        if (data.hasOwnProperty('sortable')) {
             th.sortable = data.sortable
-            th.setAttribute("data-sortable", data.sortable === true ? "true" : "false")
+            th.setAttribute('data-sortable', true === data.sortable ? 'true' : 'false')
         }
 
         this.rebuild()
@@ -291,21 +299,21 @@ export class Columns {
         const dt = this.dt
 
         // Creates a internal state that manages filters if there are none
-        if ( !dt.filterState ) {
+        if (!dt.filterState) {
             dt.filterState = {
-                originalData: dt.data
+                originalData: dt.data,
             }
         }
 
         // If that column is was not filtered yet, we need to create its state
-        if ( !dt.filterState[column] ) {
+        if (!dt.filterState[column]) {
 
             // append a filter that selects all rows, 'resetting' the filter
             const filters = [...terms, () => true]
 
             dt.filterState[column] = (
                 function() {
-                    let i = 0;
+                    let i = 0
                     return () => filters[i++ % (filters.length)]
                 }()
             )
@@ -318,7 +326,7 @@ export class Columns {
             const content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.innerText
 
             // If the filter is a function, call it, if it is a string, compare it
-            return (typeof rowFilter) === 'function' ? rowFilter(content) : content === rowFilter;
+            return 'function' === (typeof rowFilter) ? rowFilter(content) : content === rowFilter
         })
 
         dt.data = filteredRows
@@ -332,7 +340,7 @@ export class Columns {
         }
 
         if (!init) {
-            dt.emit("datatable.sort", column, dir)
+            dt.emit('datatable.sort', column, dir)
         }
     }
 
@@ -346,22 +354,22 @@ export class Columns {
         const dt = this.dt
 
         // Check column is present
-        if (dt.hasHeaders && (column < 0 || column > dt.headers.length)) {
+        if (dt.hasHeaders && (0 > column || column > dt.headers.length)) {
             return false
         }
 
-        //If there is a filter for this column, apply it instead of sorting
+        // If there is a filter for this column, apply it instead of sorting
         const filterTerms = dt.options.filters &&
               dt.options.filters[dt.headers[column].textContent]
-        if ( filterTerms && filterTerms.length !== 0 ) {
+        if (filterTerms && 0 !== filterTerms.length) {
             this.filter(column, dir, init, filterTerms)
-            return;
+            return
         }
 
         dt.sorting = true
 
         if (!init) {
-            dt.emit("datatable.sorting", column, dir)
+            dt.emit('datatable.sorting', column, dir)
         }
 
         let rows = dt.data
@@ -381,8 +389,8 @@ export class Columns {
                 let num
                 if (parseFunction) {
                     num = parseFunction(content)
-                } else if (typeof content==="string") {
-                    num = content.replace(/(\$|,|\s|%)/g, "")
+                } else if ('string'===typeof content) {
+                    num = content.replace(/(\$|,|\s|%)/g, '')
                 } else {
                     num = content
                 }
@@ -390,42 +398,46 @@ export class Columns {
                 if (parseFloat(num) == num) {
                     numeric[n++] = {
                         value: Number(num),
-                        row: tr
+                        row: tr,
                     }
                 } else {
                     alpha[a++] = {
-                        value: typeof content==="string" ? content.toLowerCase() : content,
-                        row: tr
+                        value: 'string'===typeof content ? content.toLowerCase() : content,
+                        row: tr,
                     }
                 }
             })
 
             /* Sort according to direction (ascending or descending) */
             if (!dir) {
-                if (th.classList.contains("asc")) {
-                    dir = "desc"
+                if (th.classList.contains('asc')) {
+                    dir = 'desc'
                 } else {
-                    dir = "asc"
+                    dir = 'asc'
                 }
             }
             let top
             let btm
-            if (dir == "desc") {
+            if ('desc' == dir) {
                 top = sortItems(alpha, -1)
                 btm = sortItems(numeric, -1)
-                th.classList.remove("asc")
-                th.classList.add("desc")
+                th.classList.remove('asc')
+                th.classList.add('desc')
             } else {
                 top = sortItems(numeric, 1)
                 btm = sortItems(alpha, 1)
-                th.classList.remove("desc")
-                th.classList.add("asc")
+                th.classList.remove('desc')
+                th.classList.add('asc')
             }
 
-            /* Clear asc/desc class names from the last sorted column's th if it isn't the same as the one that was just clicked */
+            /*
+                Clear asc/desc class names from the last sorted
+                column's th if it isn't the same as the one that
+                was just clicked
+            */
             if (dt.lastTh && th != dt.lastTh) {
-                dt.lastTh.classList.remove("desc")
-                dt.lastTh.classList.remove("asc")
+                dt.lastTh.classList.remove('desc')
+                dt.lastTh.classList.remove('asc')
             }
 
             dt.lastTh = th
@@ -439,7 +451,7 @@ export class Columns {
             rows.forEach((v, i) => {
                 dt.data.push(v.row)
 
-                if (v.row.searchIndex !== null && v.row.searchIndex !== undefined) {
+                if (null !== v.row.searchIndex && v.row.searchIndex !== undefined) {
                     indexes.push(i)
                 }
             })
@@ -451,7 +463,7 @@ export class Columns {
             dt.update()
 
             if (!init) {
-                dt.emit("datatable.sort", column, dir)
+                dt.emit('datatable.sort', column, dir)
             }
         })
     }
@@ -473,7 +485,7 @@ export class Columns {
 
         dt.headers.forEach((th, i) => {
             th.originalCellIndex = i
-            th.sortable = th.getAttribute("data-sortable") !== "false"
+            th.sortable = 'false' !== th.getAttribute('data-sortable')
             if (!dt.hiddenColumns.includes(i)) {
                 dt.activeHeaders.push(th)
             }
@@ -486,7 +498,7 @@ export class Columns {
 
             a.dataIndex = b.dataIndex = i
 
-            if (row.searchIndex !== null && row.searchIndex !== undefined) {
+            if (null !== row.searchIndex && row.searchIndex !== undefined) {
                 a.searchIndex = b.searchIndex = row.searchIndex
             }
 
