@@ -41,7 +41,7 @@ export class DataTable {
         if (!this.options.header) {
             this.options.sortable = false
         }
-        
+
         if (table.tHead === null) {
             if (!this.options.data ||
                 (this.options.data && !this.options.data.headers)
@@ -630,7 +630,7 @@ export class DataTable {
      * @return {[type]} [description]
      */
     setColumns(ajax) {
-        
+
         if (!ajax) {
             this.data.forEach(row => {
                 Array.from(row.cells).forEach(cell => {
@@ -698,14 +698,14 @@ export class DataTable {
                     if (data.hasOwnProperty('hidden')) {
                         if (data.hidden !== false) {
                             this.columns().hide([col])
+
                         }
                     }
-
+                    if (data.hasOwnProperty('style')) {
+                        this.columns().style(data.style, [col])
+                    }
                     if (data.hasOwnProperty('align')) {
-                        if (data.align == 'right') {
-                            this.columns().align([col])
-                            this.headers[col].style = 'text-align: right;'
-                        }
+                        this.columns().align(data.align, [col], this.headers[col])
                     }
                     
                     if (data.hasOwnProperty('sort') && data.select.length === 1) {
@@ -741,27 +741,6 @@ export class DataTable {
         }
 
         this.render('header')
-
-    // Columns styling from colDef options
-    if(this.options.colDef){
-            this.options.colDef.forEach((colDef)=>{
-                if(colDef.style){
-                let keys = Object.keys(colDef.style)
-                Array.from(this.data).forEach((rows)=>{
-                    Array.from(rows.cells).forEach((cell, idx)=>{
-                                if(colDef.targets && colDef.targets.includes(idx)){
-                                keys.forEach((key)=>{
-                                cell.style[key] = colDef.style[key]
-                            })
-                        }
-                    })
-                })
-            }
-         })
-    }
-
-    this.columns().rebuild()
-
     }
 
     /**
@@ -917,7 +896,7 @@ export class DataTable {
             } else {
                 cells = []
 
-                // Make temperary headers  this.rows().update()
+                // Make temperary headers
                 hd = createElement('thead')
                 const r = createElement('tr')
                 Array.from(this.table.tBodies[0].rows[0].cells).forEach(() => {
