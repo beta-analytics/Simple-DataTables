@@ -704,6 +704,7 @@ export class DataTable {
                     if (data.hasOwnProperty('align')) {
                         if (data.align == 'right') {
                             this.columns().align([col])
+                            this.headers[col].style = 'text-align: right;'
                         }
                     }
                     
