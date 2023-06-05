@@ -147,7 +147,6 @@ export class Columns {
         this.dt.data.forEach((row, i) => {
             if (columns.length) {
                 Object.assign(row.cells[columns].style, style)
-                
             }
         })
     }
@@ -155,7 +154,7 @@ export class Columns {
     align(align, columns, header) {
         header.style.textAlign = align
         this.dt.data.forEach((row, i) => {
-            row.cells[columns].style.textAlign = align  
+            row.cells[columns].style.textAlign = align
         })
     }
 
