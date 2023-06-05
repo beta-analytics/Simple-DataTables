@@ -131,15 +131,15 @@ export class DataTable {
     render(type) {
         if (type) {
             switch (type) {
-                case 'page':
-                    this.renderPage()
-                    break
-                case 'pager':
-                    this.renderPager()
-                    break
-                case 'header':
-                    this.renderHeader()
-                    break
+            case 'page':
+                this.renderPage()
+                break
+            case 'pager':
+                this.renderPager()
+                break
+            case 'header':
+                this.renderHeader()
+                break
             }
 
             return false
@@ -262,38 +262,38 @@ export class DataTable {
         } else {
             template = template.replace('{pageselect}', '')
         }
-
+        
 
         // Searchable
         if (options.searchable) {
 
-            // Column selector
+        // Column selector
         let wrap
         if(options.colSelect){
-                wrap = `<div class="dataTable-dropdown"><label>${options.labels.colSelect}</label></div>`
-                let colOptions = [...options.colSelect, ...this.headers]
+            wrap = `<div class="dataTable-dropdown"><label>${options.labels.colSelect}</label></div>`
+            let colOptions = [...options.colSelect, ...this.headers]
 
-                // Create the select
-                const select = createElement('select', {
-                    class: 'dataTable-columnselector'
-                })
+            // Create the select
+            const select = createElement('select', {
+                class: 'dataTable-columnselector'
+            })
 
-                // Create the options
-                colOptions.forEach((col, idx) => {
-                    const selected = idx === 0
-                    let colName = (col === 'All') ? 'All' : col.textContent
-                    const option = new Option(colName, colName, selected, selected)
-                    select.add(option)
-                })
+            // Create the options
+            colOptions.forEach((col, idx) => {
+                const selected = idx === 0
+                let colName = (col === 'All') ? 'All' : col.textContent
+                const option = new Option(colName, colName, selected, selected)
+                select.add(option)
+            })
 
-                // Custom label
-                wrap = wrap.replace('{colselect}', select.outerHTML)
+        // Custom label
+            wrap = wrap.replace('{colselect}', select.outerHTML)
 
-                // Selector placement
-                template = template.replace('{colselect}', '')
-            } else {
-                template = template.replace('{colSelect}', '')
-            }
+        // Selector placement
+            template = template.replace('{colselect}', '')
+        } else {
+        template = template.replace('{colSelect}', '')
+        }
 
             const form =
                 `<div class='dataTable-search'>${wrap}<input class='dataTable-input' type='search' placeholder='${options.labels.placeholder}' type='text'></div>`
@@ -570,9 +570,9 @@ export class DataTable {
 
         //column selector
         const columnselector = this.wrapper.querySelector('.dataTable-columnselector')
-        let selectedColumn
-        if (options.colSelect && columnselector){
-                selectedColumn = columnselector.value
+        let selectedColumn = columnselector.value
+        if (options.colSelect){
+            if(columnselector){
                 columnselector.addEventListener('change', (e)=>{
                     selectedColumn = e.target.value
 
@@ -580,6 +580,7 @@ export class DataTable {
                         this.search(this.input.value, selectedColumn)
                     }
                 })
+            }
         }
 
         // Search input
@@ -644,16 +645,21 @@ export class DataTable {
                 // convert single column selection to array
                 if (!Array.isArray(data.select)) {
                     let col = data.select
-                    if(isNaN(col)){
-                        let indexExpression = `count(//table[@id='${this.table.id}']//th[a[contains(text(),"${col}")]]/preceding-sibling::th)`
-                        let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
-                        data.select = result.numberValue
-                        data.select = [data.select]
+                    if (isNaN(col)) {
+                        let indexExpression = `//table[@id='${this.table.id}']//th[a[contains(text(),'${col}')]]`;
+                        let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+
+                        let index = nodes.snapshotLength > 0 ? nodes.snapshotItem(0).cellIndex + 1 : null;
+
+                        if (null == index) {
+                            return
+                        } else {
+                            data.select = [index - 1]
+                        }
                     } else {
                         data.select = [data.select]
                     }
                 }
-                
 
                 // if (data.hasOwnProperty('selectByName')) {
                 //     let iMap = Object.fromEntries(
@@ -680,9 +686,16 @@ export class DataTable {
                 data.select.forEach(column => {
                     var col = column
                     if (isNaN(column)) {
-                        let indexExpression = `count(//table/thead/tr/th[a/text()='${column}']/preceding-sibling::th)`
-                        let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
-                        col = result.numberValue
+                        let indexExpression = `//table[@id='${this.table.id}']//th[a[contains(text(),'${col}')]]`;
+                        let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+
+                        let index = nodes.snapshotLength > 0 ? nodes.snapshotItem(0).cellIndex + 1 : null;
+
+                        if (null == index) {
+                            return
+                        } else {
+                            col = [index - 1]
+                        }
                     }
                     const th = this.headers[col]
                     if (data.type) {
@@ -741,27 +754,6 @@ export class DataTable {
         }
 
         this.render('header')
-
-        // Columns styling from colDef options
-    if(this.options.colDef){
-            this.options.colDef.forEach((colDef)=>{
-                if(colDef.style){
-                    let keys = Object.keys(colDef.style)
-                Array.from(this.data).forEach((rows)=>{
-                    Array.from(rows.cells).forEach((cell, idx)=>{
-                                if(colDef.targets && colDef.targets.includes(idx)){
-                                keys.forEach((key)=>{
-                                   Object.assign(cell.style, colDef.style)
-                                })
-                            }
-                        })
-                    })
-                }
-            })
-        }
-
-        this.columns().rebuild()
-
     }
 
     /**
@@ -906,7 +898,7 @@ export class DataTable {
                             '0',
                             10
                         )
-                        }px`
+                    }px`
 
                     if (container.scrollHeight > container.clientHeight) {
                         // scrollbars on one page means scrollbars on all pages.
@@ -997,7 +989,7 @@ export class DataTable {
                 }
             })
         }
-
+        
         this.data.forEach((row, idx) => {
             const inArray = this.searchData.includes(row)
 
