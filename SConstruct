@@ -34,7 +34,7 @@ def genOpts(**kwargs):
 cjs = Command(
     'dist/cjs/index.mjs',  # export file for scons
     ['src/index.js'],  # source file
-    'esbuild --sourcemap=inline {raw} {opts} --outfile={out} --watch'.format(
+    'esbuild --sourcemap=inline {raw} {opts} --outfile={out}'.format( # add --watch when in build mode
         raw  = 'src/index.js',
         opts = genOpts(),
         out  = 'dist/cjs/index.mjs'
