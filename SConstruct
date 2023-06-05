@@ -13,7 +13,7 @@ AddOption(
 )
 
 OPTS_esbuild = {
-    # 'minify'    : True, # Minified version exports x as Datatable 
+    # 'minify'    : True, # Minified version exports x as Datatable
     'bundle'    : True,
     'format'    : 'cjs',
     'sourcemap' : GetOption('dev'),
@@ -35,7 +35,7 @@ def genOpts(**kwargs):
 cjs = Command(
     'dist/cjs/index.cjs',  # export file for scons
     ['src/index.js'],  # source file
-    'esbuild --sourcemap=inline {raw} {opts} --outfile={out}'.format( # add --watch when in build mode
+    'esbuild {raw} {opts} --outfile={out}'.format( # add --watch when in build mode
         raw  = 'src/index.js',
         opts = genOpts(),
         out  = 'dist/cjs/index.cjs'
@@ -48,7 +48,7 @@ js = Command(
     [cjs],  # source file
     'browserify {raw} --minify --standalone simpleDatatables -o {out}'.format(
         raw  = 'dist/cjs/index.cjs',
-        out  = 'dist/sdt.min.js'
+        out  = 'dist/sdt.min.js',
     )
 )
 
