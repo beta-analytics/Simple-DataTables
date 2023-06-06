@@ -8,7 +8,7 @@ import {
     createElement,
     flush,
     button,
-    truncate
+    truncate,
 } from './helpers'
 
 
@@ -22,12 +22,12 @@ export class DataTable {
             ...options,
             layout: {
                 ...defaultConfig.layout,
-                ...options.layout
+                ...options.layout,
             },
             labels: {
                 ...defaultConfig.labels,
-                ...options.labels
-            }
+                ...options.labels,
+            },
         }
 
         if (typeof table === 'string') {
@@ -648,7 +648,7 @@ export class DataTable {
                 if (!Array.isArray(data.select)) {
                     let col = data.select
                     if (isNaN(col)) {
-                        let indexExpression = `//table[@id='${this.table.id}']//th[a[contains(text(),"${col}")]]`;
+                        let indexExpression = `//table[@id='${this.table.id}']//th[a[contains(text(),'${col}')]]`;
                         let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
                         let index = nodes.snapshotLength > 0 ? nodes.snapshotItem(0).cellIndex + 1 : null;
@@ -688,7 +688,7 @@ export class DataTable {
                 data.select.forEach(column => {
                     var col = column
                     if (isNaN(column)) {
-                        let indexExpression = `//table[@id='${this.table.id}']//th[a[contains(text(),"${col}")]]`;
+                        let indexExpression = `//table[@id='${this.table.id}']//th[a[contains(text(),'${col}')]]`;
                         let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
                         let index = nodes.snapshotLength > 0 ? nodes.snapshotItem(0).cellIndex + 1 : null;
@@ -703,6 +703,9 @@ export class DataTable {
                     if (data.type) {
                         th.setAttribute('data-type', data.type)
                     }
+                    if (data.hasOwnProperty('label')) {
+                        this.headers[col].innerHTML = data.label
+                    }
                     if (data.format) {
                         th.setAttribute('data-format', data.format)
                     }
@@ -713,20 +716,19 @@ export class DataTable {
                     if (data.hasOwnProperty('hidden')) {
                         if (data.hidden !== false) {
                             this.columns().hide([col])
-
                         }
                     }
                     if (data.hasOwnProperty('style')) {
                         this.columns().style(data.style, [col])
                     }
                     if (data.hasOwnProperty('align')) {
+                        console.log(this.headers[col])
                         this.columns().align(data.align, [col], this.headers[col])
                     }
 
                     if (data.hasOwnProperty('sort') && data.select.length === 1) {
                         this.columns().sort(data.select[0], data.sort, true)
                     }
-
                 })
             })
         }
