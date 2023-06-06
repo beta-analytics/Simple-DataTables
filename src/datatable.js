@@ -706,8 +706,8 @@ export class DataTable {
                     if (data.type) {
                         th.setAttribute('data-type', data.type)
                     }
-                    if (data.hasOwnProperty('label')) {
-                        this.headers[col].innerHTML = data.label
+                    if (data.hasOwnProperty('title')) {
+                        this.headers[col].innerHTML = data.title
                     }
                     if (data.format) {
                         th.setAttribute('data-format', data.format)
