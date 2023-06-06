@@ -648,7 +648,7 @@ export class DataTable {
                 if (!Array.isArray(data.select)) {
                     let col = data.select
                     if (isNaN(col)) {
-                        let indexExpression = `//table[@id='${this.table.id}']//th[a[contains(text(),'${col}')]]`;
+                        let indexExpression = `//table[@id='${this.table.id}']//th[a.text()='${col}']]`;
                         let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
                         let index = nodes.snapshotLength > 0 ? nodes.snapshotItem(0).cellIndex + 1 : null;
@@ -688,7 +688,7 @@ export class DataTable {
                 data.select.forEach(column => {
                     var col = column
                     if (isNaN(column)) {
-                        let indexExpression = `//table[@id='${this.table.id}']//th[a[contains(text(),'${col}')]]`;
+                        let indexExpression = `//table[@id='${this.table.id}']//th[a.text()="${col}"]]`;
                         let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
                         let index = nodes.snapshotLength > 0 ? nodes.snapshotItem(0).cellIndex + 1 : null;
