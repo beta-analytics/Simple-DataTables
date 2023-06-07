@@ -27,7 +27,7 @@
                             {
                                 select: 'stock_name',
                                 render: function (data, td, tr, getColData) {
-                                    return 'Hello stock'
+                                    return 'hello'
                                 }
                             },
                             {
