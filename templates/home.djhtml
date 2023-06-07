@@ -18,22 +18,23 @@
                         colDef: [
                             {
                                 targets: [0],
-                                style : {
-                                    color : "blue"
+                                style: {
+                                    color: "red"
                                 }
                             },
                         ],
                         columns: [
                             {
-                                select: 'stock_symbols',
-                                render: function (data, td, tr) {
+                                select: 'stock_name',
+                                render: function (data, td, tr, getColData) {
                                     return 'Hello stock'
                                 }
                             },
                             {
                                 select: 'announcedOn',
-                                render: function (data, td, tr) {
-                                    return 'Hello world'
+                                render: function (data, td, tr, getColData) {
+
+                                    return getColData('description')
                                 }
                             },
                         ],
