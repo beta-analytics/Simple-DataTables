@@ -1,14 +1,14 @@
-import {Rows} from './rows'
-import {Columns} from './columns'
-import {dataToTable} from './table'
-import {defaultConfig} from './config'
+import { Rows } from './rows'
+import { Columns } from './columns'
+import { dataToTable } from './table'
+import { defaultConfig } from './config'
 import {
     isObject,
     isJson,
     createElement,
     flush,
     button,
-    truncate,
+    truncate
 } from './helpers'
 
 
@@ -22,15 +22,15 @@ export class DataTable {
             ...options,
             layout: {
                 ...defaultConfig.layout,
-                ...options.layout,
+                ...options.layout
             },
             labels: {
                 ...defaultConfig.labels,
-                ...options.labels,
-            },
+                ...options.labels
+            }
         }
 
-        if ('string' === typeof table) {
+        if (typeof table === 'string') {
             table = document.querySelector(table)
         }
 
@@ -42,7 +42,7 @@ export class DataTable {
             this.options.sortable = false
         }
 
-        if (null === table.tHead) {
+        if (table.tHead === null) {
             if (!this.options.data ||
                 (this.options.data && !this.options.data.headers)
             ) {
@@ -54,7 +54,7 @@ export class DataTable {
             if (this.options.data) {
                 if (!this.options.data.data) {
                     throw new Error(
-                        'You seem to be using the data option, but you\'ve not defined any rows.',
+                        'You seem to be using the data option, but you\'ve not defined any rows.'
                     )
                 }
             }
@@ -63,9 +63,7 @@ export class DataTable {
         this.table = table
 
         this.listeners = {
-            onResize: function(event) {
-                this.onResize(event)
-            },
+            onResize: event => this.onResize(event)
         }
 
         this.init()
@@ -78,7 +76,7 @@ export class DataTable {
      * @return {Void}
      */
     static extend(prop, val) {
-        if ('function' === typeof val) {
+        if (typeof val === 'function') {
             DataTable.prototype[prop] = val
         } else {
             DataTable[prop] = val
@@ -112,11 +110,11 @@ export class DataTable {
 
             if (this.options.plugins) {
                 Object.entries(this.options.plugins).forEach(([plugin, options]) => {
-                    if (this[plugin] && 'function' === typeof this[plugin]) {
-                        this[plugin] = this[plugin](options, {createElement})
+                    if (this[plugin] && typeof this[plugin] === 'function') {
+                        this[plugin] = this[plugin](options, { createElement })
 
                         // Init plugin
-                        if (options.enabled && this[plugin].init && 'function' === typeof this[plugin].init) {
+                        if (options.enabled && this[plugin].init && typeof this[plugin].init === 'function') {
                             this[plugin].init()
                         }
                     }
@@ -133,15 +131,15 @@ export class DataTable {
     render(type) {
         if (type) {
             switch (type) {
-            case 'page':
-                this.renderPage()
-                break
-            case 'pager':
-                this.renderPager()
-                break
-            case 'header':
-                this.renderHeader()
-                break
+                case 'page':
+                    this.renderPage()
+                    break
+                case 'pager':
+                    this.renderPager()
+                    break
+                case 'header':
+                    this.renderHeader()
+                    break
             }
 
             return false
@@ -166,7 +164,7 @@ export class DataTable {
             this.table.appendChild(this.body)
         }
 
-        this.hasRows = 0 < this.body.rows.length
+        this.hasRows = this.body.rows.length > 0
 
         // Make a tHead if there isn't one (fixes #8)
         if (!this.head) {
@@ -189,7 +187,7 @@ export class DataTable {
         }
 
         this.headers = []
-        this.hasHeaders = 0 < this.head.rows.length
+        this.hasHeaders = this.head.rows.length > 0
 
         if (this.hasHeaders) {
             this.header = this.head.rows[0]
@@ -207,7 +205,7 @@ export class DataTable {
         if (options.footer) {
             if (this.head && !this.foot) {
                 this.foot = createElement('tfoot', {
-                    html: this.head.innerHTML,
+                    html: this.head.innerHTML
                 })
                 this.table.appendChild(this.foot)
             }
@@ -219,7 +217,7 @@ export class DataTable {
 
         // Build
         this.wrapper = createElement('div', {
-            class: 'dataTable-wrapper dataTable-loading',
+            class: 'dataTable-wrapper dataTable-loading'
         })
 
         // Template for custom layouts
@@ -246,7 +244,7 @@ export class DataTable {
 
             // Create the select
             const select = createElement('select', {
-                class: 'dataTable-selector',
+                class: 'dataTable-selector'
             })
 
             // Create the options
@@ -264,39 +262,38 @@ export class DataTable {
         } else {
             template = template.replace('{pageselect}', '')
         }
-        
+
 
         // Searchable
-        console.log(options.searchable)
-        if (false != options.searchable) {
+        if (options.searchable) {
 
-        // Column selector
-        let wrap
-        if(options.colSelect){
-            wrap = `<div class="dataTable-dropdown"><label>${options.labels.colSelect}</label></div>`
-            let colOptions = [...options.colSelect, ...this.headers]
+            // Column selector
+            let wrap
+            if (options.colSelect) {
+                wrap = `<div class="dataTable-dropdown"><label>${options.labels.colSelect}</label></div>`
+                let colOptions = [...options.colSelect, ...this.headers]
 
-            // Create the select
-            const select = createElement('select', {
-                class: 'dataTable-columnselector'
-            })
+                // Create the select
+                const select = createElement('select', {
+                    class: 'dataTable-columnselector'
+                })
 
-            // Create the options
-            colOptions.forEach((col, idx) => {
-                const selected = idx === 0
-                let colName = (col === 'All') ? 'All' : col.textContent
-                const option = new Option(colName, colName, selected, selected)
-                select.add(option)
-            })
+                // Create the options
+                colOptions.forEach((col, idx) => {
+                    const selected = idx === 0
+                    let colName = (col === 'All') ? 'All' : col.textContent
+                    const option = new Option(colName, colName, selected, selected)
+                    select.add(option)
+                })
 
-        // Custom label
-            wrap = wrap.replace('{colselect}', select.outerHTML)
+                // Custom label
+                wrap = wrap.replace('{colselect}', select.outerHTML)
 
-        // Selector placement
-            template = template.replace('{colselect}', '')
-        } else {
-        template = template.replace('{colSelect}', '')
-        }
+                // Selector placement
+                template = template.replace('{colselect}', '')
+            } else {
+                template = template.replace('{colSelect}', '')
+            }
 
             const form =
                 `<div class='dataTable-search'>${wrap}<input class='dataTable-input' type='search' placeholder='${options.labels.placeholder}' type='text'></div>`
@@ -317,10 +314,10 @@ export class DataTable {
 
         // Paginator
         const paginatorWrapper = createElement('nav', {
-            class: 'dataTable-pagination',
+            class: 'dataTable-pagination'
         })
         const paginator = createElement('ul', {
-            class: 'dataTable-pagination-list',
+            class: 'dataTable-pagination-list'
         })
         paginatorWrapper.appendChild(paginator)
 
@@ -412,7 +409,7 @@ export class DataTable {
 
             this.clear(frag)
 
-            this.onFirstPage = 1 === this.currentPage
+            this.onFirstPage = this.currentPage === 1
             this.onLastPage = this.currentPage === this.lastPage
         } else {
             this.setMessage(this.options.labels.noRows)
@@ -445,7 +442,7 @@ export class DataTable {
             this.label.innerHTML = items ? string : ''
         }
 
-        if (1 == this.currentPage) {
+        if (this.currentPage == 1) {
             this.fixHeight()
         }
     }
@@ -457,7 +454,7 @@ export class DataTable {
     renderPager() {
         flush(this.pagers)
 
-        if (1 < this.totalPages) {
+        if (this.totalPages > 1) {
             const c = 'pager'
             const frag = document.createDocumentFragment()
             const prev = this.onFirstPage ? 1 : this.currentPage - 1
@@ -482,7 +479,7 @@ export class DataTable {
                     this.currentPage,
                     this.pages.length,
                     this.options.pagerDelta,
-                    this.options.ellipsisText,
+                    this.options.ellipsisText
                 )
             }
 
@@ -529,14 +526,14 @@ export class DataTable {
                     th.innerHTML = th.firstElementChild.innerHTML
                 }
 
-                th.sortable = 'false' !== th.getAttribute('data-sortable')
+                th.sortable = th.getAttribute('data-sortable') !== 'false'
 
                 th.originalCellIndex = i
                 if (this.options.sortable && th.sortable) {
                     const link = createElement('a', {
                         href: '#',
                         class: 'dataTable-sorter',
-                        html: th.innerHTML,
+                        html: th.innerHTML
                     })
 
                     th.innerHTML = ''
@@ -555,7 +552,7 @@ export class DataTable {
      */
     bindEvents() {
         const options = this.options
-        // Per page selector
+            // Per page selector
         if (options.perPageSelect) {
             const pageSelector = this.wrapper.querySelector('.dataTable-selector')
             if (pageSelector) {
@@ -571,23 +568,20 @@ export class DataTable {
             }
         }
 
-        // column selector
-        if (options.searchable) {
-            const columnselector = this.wrapper.querySelector('.dataTable-columnselector')
-            let selectedColumn = columnselector.value
-            if (options.colSelect) {
-                if (columnselector) {
-                    columnselector.addEventListener('change', (e)=>{
-                        selectedColumn = e.target.value
+        //column selector
+        const columnselector = this.wrapper.querySelector('.dataTable-columnselector')
+        let selectedColumn = columnselector.value
+        if (options.colSelect) {
+            if (columnselector) {
+                columnselector.addEventListener('change', (e) => {
+                    selectedColumn = e.target.value
 
-                        if (this.wrapper.querySelector('.dataTable-input').value) {
-                            this.search(this.input.value, selectedColumn)
-                        }
-                    })
-                }
+                    if (this.wrapper.querySelector('.dataTable-input').value) {
+                        this.search(this.input.value, selectedColumn)
+                    }
+                })
             }
         }
-
 
         // Search input
         if (options.searchable) {
@@ -601,14 +595,14 @@ export class DataTable {
         // Pager(s) / sorting
         this.wrapper.addEventListener('click', e => {
             const t = e.target.closest('a')
-            if (t && ('a' === t.nodeName.toLowerCase())) {
+            if (t && (t.nodeName.toLowerCase() === 'a')) {
                 if (t.hasAttribute('data-page')) {
                     this.page(t.getAttribute('data-page'))
                     e.preventDefault()
                 } else if (
                     options.sortable &&
                     t.classList.contains('dataTable-sorter') &&
-                    'false' != t.parentNode.getAttribute('data-sortable')
+                    t.parentNode.getAttribute('data-sortable') != 'false'
                 ) {
                     this.columns().sort(this.headers.indexOf(t.parentNode))
                     e.preventDefault()
@@ -652,59 +646,47 @@ export class DataTable {
                 if (!Array.isArray(data.select)) {
                     let col = data.select
                     if (isNaN(col)) {
-                        let indexExpression = `//table[@id='${this.table.id}']//th[a[text()='${col}']]`
-                        let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-
-                        let index = nodes.snapshotLength > 0 ? nodes.snapshotItem(0).cellIndex + 1 : null
-                        if (null == index) {
-                            return
-                        } else {
-                            data.select = [index - 1]
-                        }
+                        let indexExpression = `count(//table[@id='${this.table.id}']//th[a[contains(text(),'${col}')]]/preceding-sibling::th)`
+                        let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
+                        data.select = result.numberValue
+                        data.select = [data.select]
                     } else {
                         data.select = [data.select]
                     }
                 }
+
                 // if (data.hasOwnProperty('selectByName')) {
                 //     let iMap = Object.fromEntries(
                 //         this.options.data.headers.map(function (header, idx) {
                 //             return [header, idx]
                 //         })
                 //     )
+
                 //     data.select = data.selectByName.map(function (name) {
                 //         return iMap[name]
                 //     })
                 // }
-                if (data.hasOwnProperty('render') && 'function' === typeof data.render) {
+                if (data.hasOwnProperty('render') && typeof data.render === 'function') {
                     this.selectedColumns = this.selectedColumns.concat(data.select)
-                    this.selectedColumns = this.selectedColumns.filter(element => 'string' !== typeof element)
+                    this.selectedColumns = this.selectedColumns.filter(element => typeof element !== 'string');
 
                     this.columnRenderers.push({
                         columns: data.select,
-                        renderer: data.render,
+                        renderer: data.render
                     })
                 }
+
                 // Add the data attributes to the th elements
                 data.select.forEach(column => {
-                    let col = column
+                    var col = column
                     if (isNaN(column)) {
-                        let indexExpression = `//table[@id='${this.table.id}']//th[a[text()='${col}']]`;
-                        let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-
-                        let index = nodes.snapshotLength > 0 ? nodes.snapshotItem(0).cellIndex + 1 : null;
-
-                        if (null == index) {
-                            return
-                        } else {
-                            col = [index - 1]
-                        }
+                        let indexExpression = `count(//table/thead/tr/th[a/text()='${column}']/preceding-sibling::th)`
+                        let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
+                        col = result.numberValue
                     }
                     const th = this.headers[col]
                     if (data.type) {
                         th.setAttribute('data-type', data.type)
-                    }
-                    if (data.hasOwnProperty('title')) {
-                        this.headers[col].innerHTML = data.title
                     }
                     if (data.format) {
                         th.setAttribute('data-format', data.format)
@@ -714,8 +696,9 @@ export class DataTable {
                     }
 
                     if (data.hasOwnProperty('hidden')) {
-                        if (false !== data.hidden) {
+                        if (data.hidden !== false) {
                             this.columns().hide([col])
+
                         }
                     }
                     if (data.hasOwnProperty('style')) {
@@ -724,9 +707,11 @@ export class DataTable {
                     if (data.hasOwnProperty('align')) {
                         this.columns().align(data.align, [col], this.headers[col])
                     }
-                    if (data.hasOwnProperty('sort') && 1 === data.select.length) {
+
+                    if (data.hasOwnProperty('sort') && data.select.length === 1) {
                         this.columns().sort(data.select[0], data.sort, true)
                     }
+
                 })
             })
         }
@@ -740,14 +725,11 @@ export class DataTable {
             })
             if (this.selectedColumns) {
                 this.data.forEach(row => {
-                    let colIndex = this.activeHeaders.map((headers, idx)=>{
-                        return [row.cells[idx], headers] 
-                    })
                     Array.from(row.cells).forEach((cell, i) => {
                         if (this.selectedColumns.includes(i)) {
                             this.columnRenderers.forEach(options => {
                                 if (options.columns.includes(i)) {
-                                    cell.innerHTML = options.renderer.call(this, cell.data, cell, row, colIndex)
+                                    cell.innerHTML = options.renderer.call(this, cell.data, cell, row)
                                 }
                             })
                         }
@@ -794,7 +776,7 @@ export class DataTable {
         let i = this.pages.length
         while (i--) {
             const num = i + 1
-            this.links[i] = button(0 === i ? 'active' : '', num, num)
+            this.links[i] = button(i === 0 ? 'active' : '', num, num)
         }
 
         this.sorting = false
@@ -823,7 +805,7 @@ export class DataTable {
         if (this.options.paging) {
             // Check for hidden columns
             this.pages = rows
-                .map((tr, i) => 0 === i % perPage ? rows.slice(i, i + perPage) : null)
+                .map((tr, i) => i % perPage === 0 ? rows.slice(i, i + perPage) : null)
                 .filter(page => page)
         } else {
             this.pages = [rows]
@@ -901,7 +883,7 @@ export class DataTable {
                         parseInt(
                             this.headerTable.parentElement.style.paddingRight ||
                             '0',
-                            10,
+                            10
                         )
                     }px`
 
@@ -985,10 +967,10 @@ export class DataTable {
 
         // find selected column's index
         let columnIndex
-        if ('All' == cols) {
+        if (cols == 'All') {
             columnIndex = cols
         } else {
-            Array.from(this.headers).forEach((col, idx)=>{
+            Array.from(this.headers).forEach((col, idx) => {
                 if (col.textContent === cols) {
                     columnIndex = idx
                 }
@@ -1057,7 +1039,7 @@ export class DataTable {
             this.currentPage = parseInt(page, 10)
         }
 
-        if (page > this.pages.length || 0 > page) {
+        if (page > this.pages.length || page < 0) {
             return false
         }
 
@@ -1090,7 +1072,7 @@ export class DataTable {
                     const tr = createElement('tr')
                     data.headers.forEach(header => {
                         const th = createElement('th', {
-                            html: header,
+                            html: header
                         })
 
                         tr.appendChild(th)
@@ -1123,7 +1105,7 @@ export class DataTable {
 
                     const index = this.labels.indexOf(header)
 
-                    if (-1 < index) {
+                    if (index > -1) {
                         r[index] = cell
                     }
                 })
@@ -1174,7 +1156,7 @@ export class DataTable {
         }
 
         if (html) {
-            if ('string' === typeof html) {
+            if (typeof html === 'string') {
                 const frag = document.createDocumentFragment()
                 frag.innerHTML = html
             }
@@ -1188,7 +1170,7 @@ export class DataTable {
      * @param  {Object} userOptions User options
      * @return {Boolean}
      */
-    export(userOptions) {
+    export (userOptions) {
         if (!this.hasHeaders && !this.hasRows) return false
 
         const headers = this.activeHeaders
@@ -1212,7 +1194,7 @@ export class DataTable {
 
             // json
             replacer: null,
-            space: 4,
+            space: 4
         }
 
         // Check for the options object
@@ -1222,11 +1204,11 @@ export class DataTable {
 
         const options = {
             ...defaults,
-            ...userOptions,
+            ...userOptions
         }
 
         if (options.type) {
-            if ('txt' === options.type || 'csv' === options.type) {
+            if (options.type === 'txt' || options.type === 'csv') {
                 // Include headers
                 rows[0] = this.header
             }
@@ -1248,14 +1230,13 @@ export class DataTable {
 
             // Only proceed if we have data
             if (rows.length) {
-                if ('txt' === options.type || 'csv' === options.type) {
+                if (options.type === 'txt' || options.type === 'csv') {
                     str = ''
 
                     for (i = 0; i < rows.length; i++) {
                         for (x = 0; x < rows[i].cells.length; x++) {
                             // Check for column skip and visibility
-                            if (
-                                !options.skipColumn.includes(headers[x].originalCellIndex) &&
+                            if (!options.skipColumn.includes(headers[x].originalCellIndex) &&
                                 this.columns(headers[x].originalCellIndex).visible()
                             ) {
                                 let text = rows[i].cells[x].textContent
@@ -1263,7 +1244,7 @@ export class DataTable {
                                 text = text.replace(/\s{2,}/g, ' ')
                                 text = text.replace(/\n/g, '  ')
                                 text = text.replace(/'/g, '')
-                                // have to manually encode '#' as encodeURI leaves it as is.
+                                    //have to manually encode '#' as encodeURI leaves it as is.
                                 text = text.replace(/#/g, '%23')
                                 if (text.includes(','))
                                     text = `'${text}'`
@@ -1285,15 +1266,14 @@ export class DataTable {
                     if (options.download) {
                         str = `data:text/csv;charset=utf-8,${str}`
                     }
-                } else if ('sql' === options.type) {
+                } else if (options.type === 'sql') {
                     // Begin INSERT statement
                     str = `INSERT INTO \`${options.tableName}\` (`
 
                     // Convert table headers to column names
                     for (i = 0; i < headers.length; i++) {
                         // Check for column skip and column visibility
-                        if (
-                            !options.skipColumn.includes(headers[i].originalCellIndex) &&
+                        if (!options.skipColumn.includes(headers[i].originalCellIndex) &&
                             this.columns(headers[i].originalCellIndex).visible()
                         ) {
                             str += `\`${headers[i].textContent}\`,`
@@ -1312,8 +1292,7 @@ export class DataTable {
 
                         for (x = 0; x < rows[i].cells.length; x++) {
                             // Check for column skip and column visibility
-                            if (
-                                !options.skipColumn.includes(headers[x].originalCellIndex) &&
+                            if (!options.skipColumn.includes(headers[x].originalCellIndex) &&
                                 this.columns(headers[x].originalCellIndex).visible()
                             ) {
                                 str += `'${rows[i].cells[x].textContent}',`
@@ -1336,15 +1315,14 @@ export class DataTable {
                     if (options.download) {
                         str = `data:application/sql;charset=utf-8,${str}`
                     }
-                } else if ('json' === options.type) {
+                } else if (options.type === 'json') {
                     // Iterate rows
                     for (x = 0; x < rows.length; x++) {
                         arr[x] = arr[x] || {}
-                        // Iterate columns
+                            // Iterate columns
                         for (i = 0; i < headers.length; i++) {
                             // Check for column skip and column visibility
-                            if (
-                                !options.skipColumn.includes(headers[i].originalCellIndex) &&
+                            if (!options.skipColumn.includes(headers[i].originalCellIndex) &&
                                 this.columns(headers[i].originalCellIndex).visible()
                             ) {
                                 arr[x][headers[i].textContent] = rows[x].cells[i].textContent
@@ -1395,12 +1373,12 @@ export class DataTable {
      * @param  {Object} userOptions User options
      * @return {Boolean}
      */
-    import(userOptions) {
+    import (userOptions) {
         let obj = false
         const defaults = {
             // csv
             lineDelimiter: '\n',
-            columnDelimiter: ',',
+            columnDelimiter: ','
         }
 
         // Check for the options object
@@ -1410,14 +1388,14 @@ export class DataTable {
 
         const options = {
             ...defaults,
-            ...userOptions,
+            ...userOptions
         }
 
         if (options.data.length || isObject(options.data)) {
             // Import CSV
-            if ('csv' === options.type) {
+            if (options.type === 'csv') {
                 obj = {
-                    data: [],
+                    data: []
                 }
 
                 // Split the string into rows
@@ -1444,14 +1422,14 @@ export class DataTable {
                         }
                     })
                 }
-            } else if ('json' === options.type) {
+            } else if (options.type === 'json') {
                 const json = isJson(options.data)
 
                 // Valid JSON string
                 if (json) {
                     obj = {
                         headers: [],
-                        data: [],
+                        data: []
                     }
 
                     json.forEach((data, i) => {
@@ -1497,8 +1475,8 @@ export class DataTable {
         headers.forEach(th => {
             tr.appendChild(
                 createElement('th', {
-                    html: th.textContent,
-                }),
+                    html: th.textContent
+                })
             )
         })
 
@@ -1509,8 +1487,8 @@ export class DataTable {
             Array.from(row.cells).forEach(cell => {
                 tr.appendChild(
                     createElement('td', {
-                        html: cell.textContent,
-                    }),
+                        html: cell.textContent
+                    })
                 )
             })
             tbody.appendChild(tr)
@@ -1552,8 +1530,8 @@ export class DataTable {
 
         this.clear(
             createElement('tr', {
-                html: `<td class='dataTables-empty' colspan='${colspan}'>${message}</td>`,
-            }),
+                html: `<td class='dataTables-empty' colspan='${colspan}'>${message}</td>`
+            })
         )
     }
 
@@ -1593,7 +1571,7 @@ export class DataTable {
      */
     off(event, callback) {
         this.events = this.events || {}
-        if (false === event in this.events) return
+        if (event in this.events === false) return
         this.events[event].splice(this.events[event].indexOf(callback), 1)
     }
 
@@ -1604,7 +1582,7 @@ export class DataTable {
      */
     emit(event) {
         this.events = this.events || {}
-        if (false === event in this.events) return
+        if (event in this.events === false) return
         for (let i = 0; i < this.events[event].length; i++) {
             this.events[event][i].apply(this, Array.prototype.slice.call(arguments, 1))
         }
