@@ -25,16 +25,15 @@
                         ],
                         columns: [
                             {
-                                select: 'stock_name',
-                                render: function (data, td, tr, getColData) {
-                                    return 'hello'
+                                select: ['stock_symbol','org_name'],
+                                render: function (data, td, tr) {
+                                    return 'Hello stock'
                                 }
                             },
                             {
-                                select: 'announcedOn',
-                                render: function (data, td, tr, getColData) {
-
-                                    return getColData('description')
+                                select: ['announcedOn'],
+                                render: function (data, td, tr) {
+                                    return 'Hello world'
                                 }
                             },
                         ],

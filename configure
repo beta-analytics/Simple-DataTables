@@ -6,7 +6,7 @@ set -e
 # * REPO
 echo '* REPO'
 
-mkdir --parent assets/portfolio
+mkdir -p assets/portfolio
 
 test -d venv || python3 -m venv venv
 
