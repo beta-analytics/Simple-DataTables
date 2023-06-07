@@ -734,7 +734,13 @@ export class DataTable {
                         if (this.selectedColumns.includes(i)) {
                             this.columnRenderers.forEach(options => {
                                 if (options.columns.includes(i)) {
-                                    cell.innerHTML = options.renderer.call(this, cell.data, cell, row)
+                                    function getColData(col) {
+                                    let exp = `//table[@id='table']//th[a[text()='${col}']]`;
+                                    let node = document.evaluate(exp, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+                                    let colIndex = node.snapshotItem(0).cellIndex
+                                    return row.cells[colIndex].textContent
+                                  }
+                                    cell.innerHTML = options.renderer.call(this, cell.data, cell, row, getColData)
                                 }
                             })
                         }
