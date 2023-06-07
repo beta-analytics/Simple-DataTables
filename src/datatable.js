@@ -106,7 +106,7 @@ export class DataTable {
 
         this.render()
 
-        setTimeout(function() {
+        setTimeout(() => {
             this.emit('datatable.init')
             this.initialized = true
 
@@ -267,7 +267,8 @@ export class DataTable {
         
 
         // Searchable
-        if (options.searchable) {
+        console.log(options.searchable)
+        if (false != options.searchable) {
 
         // Column selector
         let wrap
@@ -570,16 +571,16 @@ export class DataTable {
             }
         }
 
-        //column selector
+        // column selector
         if (options.searchable) {
             const columnselector = this.wrapper.querySelector('.dataTable-columnselector')
             let selectedColumn = columnselector.value
-            if (options.colSelect){
-                if(columnselector){
+            if (options.colSelect) {
+                if (columnselector) {
                     columnselector.addEventListener('change', (e)=>{
                         selectedColumn = e.target.value
 
-                        if(this.wrapper.querySelector('.dataTable-input').value){
+                        if (this.wrapper.querySelector('.dataTable-input').value) {
                             this.search(this.input.value, selectedColumn)
                         }
                     })
@@ -651,13 +652,12 @@ export class DataTable {
                 if (!Array.isArray(data.select)) {
                     let col = data.select
                     if (isNaN(col)) {
-                        let indexExpression = `//table[@id='${this.table.id}']//th[a[contains(text(),'${col}')]]`;
+                        let indexExpression = `//table[@id='${this.table.id}']//th[a[text()='${col}']]`
                         let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
-                        let index = nodes.snapshotLength > 0 ? nodes.snapshotItem(0).cellIndex + 1 : null;
-
+                        let index = nodes.snapshotLength > 0 ? nodes.snapshotItem(0).cellIndex + 1 : null
                         if (null == index) {
-                            return;
+                            return
                         } else {
                             data.select = [index - 1]
                         }
@@ -665,14 +665,12 @@ export class DataTable {
                         data.select = [data.select]
                     }
                 }
-
                 // if (data.hasOwnProperty('selectByName')) {
                 //     let iMap = Object.fromEntries(
                 //         this.options.data.headers.map(function (header, idx) {
                 //             return [header, idx]
                 //         })
                 //     )
-
                 //     data.select = data.selectByName.map(function (name) {
                 //         return iMap[name]
                 //     })
@@ -686,12 +684,11 @@ export class DataTable {
                         renderer: data.render,
                     })
                 }
-
                 // Add the data attributes to the th elements
                 data.select.forEach(column => {
                     let col = column
                     if (isNaN(column)) {
-                        let indexExpression = `//table[@id='${this.table.id}']//th[a[contains(text(),'${col}')]]`;
+                        let indexExpression = `//table[@id='${this.table.id}']//th[a[text()='${col}']]`;
                         let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
                         let index = nodes.snapshotLength > 0 ? nodes.snapshotItem(0).cellIndex + 1 : null;
@@ -727,7 +724,6 @@ export class DataTable {
                     if (data.hasOwnProperty('align')) {
                         this.columns().align(data.align, [col], this.headers[col])
                     }
-
                     if (data.hasOwnProperty('sort') && 1 === data.select.length) {
                         this.columns().sort(data.select[0], data.sort, true)
                     }
@@ -998,7 +994,7 @@ export class DataTable {
                 }
             })
         }
-        
+
         this.data.forEach((row, idx) => {
             const inArray = this.searchData.includes(row)
 
