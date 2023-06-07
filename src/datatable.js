@@ -1,8 +1,7 @@
-/* eslint-disable no-restricted-syntax */
-import { Rows } from './rows'
-import { Columns } from './columns'
-import { dataToTable } from './table'
-import { defaultConfig } from './config'
+import {Rows} from './rows'
+import {Columns} from './columns'
+import {dataToTable} from './table'
+import {defaultConfig} from './config'
 import {
     isObject,
     isJson,
@@ -267,7 +266,8 @@ export class DataTable {
 
 
         // Searchable
-        if (options.searchable) {
+        console.log(options.searchable)
+        if (false != options.searchable) {
 
             // Column selector
             let wrap
@@ -275,18 +275,18 @@ export class DataTable {
                 wrap = `<div class="dataTable-dropdown"><label>${options.labels.colSelect}</label></div>`
                 let colOptions = [...options.colSelect, ...this.headers]
 
-                // Create the select
-                const select = createElement('select', {
-                    class: 'dataTable-columnselector',
-                })
+            // Create the select
+            const select = createElement('select', {
+                class: 'dataTable-columnselector'
+            })
 
-                // Create the options
-                colOptions.forEach((col, idx) => {
-                    const selected = 0 === idx
-                    let colName = ('All' === col) ? 'All' : col.textContent
-                    const option = new Option(colName, colName, selected, selected)
-                    select.add(option)
-                })
+            // Create the options
+            colOptions.forEach((col, idx) => {
+                const selected = idx === 0
+                let colName = (col === 'All') ? 'All' : col.textContent
+                const option = new Option(colName, colName, selected, selected)
+                select.add(option)
+            })
 
                 // Custom label
                 wrap = wrap.replace('{colselect}', select.outerHTML)
@@ -645,15 +645,15 @@ export class DataTable {
         if (this.options.columns && this.headers.length) {
             this.options.columns.forEach(data => {
                 // convert single column selection to array
-                if (Array.isArray(data.select)) {
-                    let selected = []
-                    data.select.forEach(col => {
-                        if (isNaN(col)) {
-                            let indexExpression = `count(//table[@id='${this.table.id}']//th[a[contains(text(),'${col}')]]/preceding-sibling::th)`
-                            let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
-                            // data.select = result.numberValue
-                            // data.select = [data.select]
-                            selected.push(result.numberValue)
+                if (!Array.isArray(data.select)) {
+                    let col = data.select
+                    if (isNaN(col)) {
+                        let indexExpression = `//table[@id='${this.table.id}']//th[a[text()='${col}']]`
+                        let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+
+                        let index = nodes.snapshotLength > 0 ? nodes.snapshotItem(0).cellIndex + 1 : null
+                        if (null == index) {
+                            return
                         } else {
                             data.select = [data.select]
                         }
@@ -735,7 +735,16 @@ export class DataTable {
                         if (this.selectedColumns.includes(i)) {
                             this.columnRenderers.forEach(options => {
                                 if (options.columns.includes(i)) {
-                                    cell.innerHTML = options.renderer.call(this, cell.data, cell, row)
+
+                                    function getColData(col) {
+                                        let exp = `//table[@id='table']//th[a[text()='${col}']]`;
+                                        let node = document.evaluate(exp, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+                                        let colIndex = node.snapshotItem(0).cellIndex
+
+                                        return row.cells[colIndex].textContent
+                                    }
+
+                                    cell.innerHTML = options.renderer.call(this, cell.data, cell, row, getColData)
                                 }
                             })
                         }
@@ -883,15 +892,14 @@ export class DataTable {
                     this.headerTable.tHead = thd
 
                     // Compensate for scrollbars.
-                    this.headerTable.parentElement.style.paddingRight = `${
-                        this.headerTable.clientWidth -
+                    this.headerTable.parentElement.style.paddingRight = `${this.headerTable.clientWidth -
                         this.table.clientWidth +
                         parseInt(
                             this.headerTable.parentElement.style.paddingRight ||
                             '0',
                             10,
                         )
-                    }px`
+                        }px`
 
                     if (container.scrollHeight > container.clientHeight) {
                         // scrollbars on one page means scrollbars on all pages.
@@ -977,11 +985,13 @@ export class DataTable {
             columnIndex = cols
         } else {
             Array.from(this.headers).forEach((col, idx) => {
+            Array.from(this.headers).forEach((col, idx) => {
                 if (col.textContent === cols) {
                     columnIndex = idx
                 }
             })
         }
+
 
         this.data.forEach((row, idx) => {
             const inArray = this.searchData.includes(row)
@@ -994,7 +1004,7 @@ export class DataTable {
 
                 for (let x = 0; x < row.cells.length; x++) {
                     // if (cols != undefined && !cols.includes(x)) continue
-                    cell = ('string' === typeof(columnIndex)) ? row.cells[x] : row.cells[columnIndex]
+                    cell = ('string' === typeof (columnIndex)) ? row.cells[x] : row.cells[columnIndex]
                     content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.textContent
 
                     if (
