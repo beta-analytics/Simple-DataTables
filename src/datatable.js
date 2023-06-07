@@ -266,7 +266,6 @@ export class DataTable {
 
 
         // Searchable
-        console.log(options.searchable)
         if (false != options.searchable) {
 
             // Column selector
@@ -657,10 +656,9 @@ export class DataTable {
                         } else {
                             data.select = [data.select]
                         }
-                    })
+                    }
                     data.select = selected
                 }
-
                 // if (data.hasOwnProperty('selectByName')) {
                 //     let iMap = Object.fromEntries(
                 //         this.options.data.headers.map(function (header, idx) {
@@ -984,7 +982,6 @@ export class DataTable {
         if ('All' == cols) {
             columnIndex = cols
         } else {
-            Array.from(this.headers).forEach((col, idx) => {
             Array.from(this.headers).forEach((col, idx) => {
                 if (col.textContent === cols) {
                     columnIndex = idx
