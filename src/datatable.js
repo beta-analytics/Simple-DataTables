@@ -739,9 +739,11 @@ export class DataTable {
                         if (this.selectedColumns.includes(i)) {
                             this.columnRenderers.forEach(options => {
                                 if (options.columns.includes(i)) {
+                                    let tableID = this.table.id
                                     let getColData = function (colName) {
                                         let dataList = colName.map((col)=>{
-                                            let exp = `//table/thead/tr/th[a[contains(text(),"${col}")]]/preceding-sibling::th`
+                                            console.log(tableID)
+                                            let exp = `//table[@id='${tableID}']//th[a[text()='${col}']]`
                                             let node = document.evaluate(exp, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
                                             let index = node.snapshotItem(0).cellIndex
                                             return row.cells[index].textContent
