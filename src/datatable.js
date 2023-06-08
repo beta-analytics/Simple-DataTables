@@ -746,6 +746,7 @@ export class DataTable {
                                             let node = document.evaluate(exp, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
 
                                             let index = node.snapshotLength > 0 ? node.snapshotItem(0).cellIndex + 1 : null;
+                                            console.log(index)
                                             return row.cells[index - 1].textContent
                                         })
                                         return dataList.join(',')
