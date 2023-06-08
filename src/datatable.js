@@ -734,20 +734,21 @@ export class DataTable {
                 })
             })
             if (this.selectedColumns) {
+                let tHeaders = this.headers
                 this.data.forEach(row => {
                     Array.from(row.cells).forEach((cell, i) => {
                         if (this.selectedColumns.includes(i)) {
                             this.columnRenderers.forEach(options => {
                                 if (options.columns.includes(i)) {
-                                    let tableID = this.table.id
                                     let getColData = function (colName) {
                                         let dataList = colName.map((col)=>{
-                                            let exp = `//table[@id='${tableID}']//th[a[text()='${col}']]`
-                                            let node = document.evaluate(exp, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
 
-                                            let index = node.snapshotLength > 0 ? node.snapshotItem(0).cellIndex + 1 : null;
-                                            console.log(index)
-                                            return row.cells[index - 1].textContent
+                                            for (let temp=0; temp<tHeaders.length; temp++) {
+                                                if (tHeaders[temp].innerText == col) {
+                                                    let index = temp
+                                                    return row.cells[index].textContent
+                                                }
+                                            }
                                         })
                                         return dataList.join(',')
                                     }
