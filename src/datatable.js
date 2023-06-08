@@ -571,17 +571,16 @@ export class DataTable {
 
         // column selector
         const columnselector = this.wrapper.querySelector('.dataTable-columnselector')
-        let selectedColumn = columnselector.value
-        if (options.colSelect) {
-            if (columnselector) {
-                columnselector.addEventListener('change', (e) => {
-                    selectedColumn = e.target.value
+        let selectedColumn
+        if (options.colSelect && columnselector) {
+            selectedColumn = columnselector.value
+            columnselector.addEventListener('change', (e) => {
+                selectedColumn = e.target.value
 
-                    if (this.wrapper.querySelector('.dataTable-input').value) {
-                        this.search(this.input.value, selectedColumn)
-                    }
-                })
-            }
+                if (this.wrapper.querySelector('.dataTable-input').value) {
+                    this.search(this.input.value, selectedColumn)
+                }
+            })
         }
 
         // Search input
