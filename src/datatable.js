@@ -649,10 +649,15 @@ export class DataTable {
                     let selected = []
                     data.select.forEach(col => {
                         if (isNaN(col)) {
-                            let indexExpression = `count(//table[@id='${this.table.id}']//th[a[contains(text(),"${col}")]]/preceding-sibling::th)`
-                            let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
-                            // data.select = result.numberValue
-                            selected.push(result.numberValue)
+                            let indexExpression = `//table[@id='${this.table.id}']//th[a[text()='${col}']]`;
+                            let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+
+                            let index = nodes.snapshotLength > 0 ? nodes.snapshotItem(0).cellIndex + 1 : null;
+
+                            if (null == index) {
+                                return
+                            }
+                            selected.push(index-1)
                         } else {
                             data.select = [data.select]
                         }
