@@ -27,13 +27,13 @@
                             {
                                 select: ['stock_symbol'],
                                 render: function (data, td, tr, getColData) {
-                                    return 'Hello stock'
+                                    return 'Hello'
                                 }
                             },
                             {
                                 select: ['announcedOn'],
                                 render: function (data, td, tr, getColData) {
-                                    return getColData('org_name')
+                                    return getColData(['org_name', 'stock_symbol'])
                                 }
                             },
                         ],
