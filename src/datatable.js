@@ -267,8 +267,7 @@ export class DataTable {
 
 
         // Searchable
-        if (options.searchable) {
-
+        if (false != options.searchable) {
             // Column selector
             let wrap
             if (options.colSelect) {
