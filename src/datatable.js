@@ -649,7 +649,7 @@ export class DataTable {
                     let selected = []
                     data.select.forEach(col => {
                         if (isNaN(col)) {
-                            let indexExpression = `count(//table[@id='${this.table.id}']//th[a[contains(text(),'${col}')]]/preceding-sibling::th)`
+                            let indexExpression = `count(//table[@id='${this.table.id}']//th[a[contains(text(),"${col}")]]/preceding-sibling::th)`
                             let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
                             // data.select = result.numberValue
                             selected.push(result.numberValue)
@@ -685,7 +685,7 @@ export class DataTable {
                 data.select.forEach(column => {
                     let col = column
                     if (isNaN(column)) {
-                        let indexExpression = `count(//table/thead/tr/th[a/text()='${column}']/preceding-sibling::th)`
+                        let indexExpression = `count(//table/thead/tr/th[a/text()="${column}"]/preceding-sibling::th)`
                         let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
                         col = result.numberValue
                     }
@@ -698,6 +698,9 @@ export class DataTable {
                     }
                     if (data.hasOwnProperty('sortable')) {
                         th.setAttribute('data-sortable', data.sortable)
+                    }
+                    if (data.hasOwnProperty('title')) {
+                        this.headers[col].innerHTML = data.title
                     }
 
                     if (data.hasOwnProperty('hidden')) {
