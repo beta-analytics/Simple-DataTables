@@ -648,10 +648,10 @@ export class DataTable {
                     let selected = []
                     data.select.forEach(col => {
                         if (isNaN(col)) {
-                            let indexExpression = `//table[@id='${this.table.id}']//th[a[normalize-space(text())="${col.trim()}"]]`
+                            let indexExpression = `//table[@id='${this.table.id}']//th[a[text()="${col}"]]`
                             let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
-
                             let index = 0 < nodes.snapshotLength ? nodes.snapshotItem(0).cellIndex + 1 : null
+
                             if (null == index) {
                                 return
                             }
@@ -688,7 +688,7 @@ export class DataTable {
                 data.select.forEach(column => {
                     let col = column
                     if (isNaN(column)) {
-                        let indexExpression = `count(//table/thead/tr/th[a[normalize-space(text())="${column.trim()}"]]/preceding-sibling::th)`
+                        let indexExpression = `count(//table/thead/tr/th[a[text()="${column}"]]/preceding-sibling::th)`
                         let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
                         col = result.numberValue
                     }
@@ -749,7 +749,7 @@ export class DataTable {
                                 if (options.columns.includes(i)) {
                                     let getColData = function (colName) {
                                             let dataList = colName.map((col)=>{
-    
+
                                                 for (let temp=0; temp<tHeaders.length; temp++) {
                                                     if (tHeaders[temp].innerText == col) {
                                                         let index = temp
