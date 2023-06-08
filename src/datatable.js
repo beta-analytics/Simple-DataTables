@@ -676,7 +676,7 @@ export class DataTable {
                 //         return iMap[name]
                 //     })
                 // }
-                if (data.hasOwnProperty('render') && 'function' === typeof data.render) {
+                if (data.hasOwnProperty.call('render') && 'function' === typeof data.render) {
                     this.selectedColumns = this.selectedColumns.concat(data.select)
                     this.selectedColumns = this.selectedColumns.filter(element => 'string' !== typeof element)
 
@@ -701,27 +701,26 @@ export class DataTable {
                     if (data.format) {
                         th.setAttribute('data-format', data.format)
                     }
-                    if (data.hasOwnProperty('sortable')) {
+                    if (data.hasOwnProperty.call('sortable')) {
                         th.setAttribute('data-sortable', data.sortable)
                     }
                     if (data.hasOwnProperty('title')) {
                         this.headers[col].innerHTML = data.title
                     }
 
-                    if (data.hasOwnProperty('hidden')) {
+                    if (data.hasOwnProperty.call('hidden')) {
                         if (false !== data.hidden) {
                             this.columns().hide([col])
-
                         }
                     }
-                    if (data.hasOwnProperty('style')) {
+                    if (data.hasOwnProperty.call('style')) {
                         this.columns().style(data.style, [col])
                     }
-                    if (data.hasOwnProperty('align')) {
+                    if (data.hasOwnProperty.call('align')) {
                         this.columns().align(data.align, [col], this.headers[col])
                     }
 
-                    if (data.hasOwnProperty('sort') && 1 === data.select.length) {
+                    if (data.hasOwnProperty.call('sort') && 1 === data.select.length) {
                         this.columns().sort(data.select[0], data.sort, true)
                     }
 
@@ -742,12 +741,12 @@ export class DataTable {
                         if (this.selectedColumns.includes(i)) {
                             this.columnRenderers.forEach(options => {
                                 if (options.columns.includes(i)) {
-                                    function getColData(col) {
-                                    let exp = `//table[@id='table']//th[a[text()='${col}']]`;
-                                    let node = document.evaluate(exp, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
-                                    let colIndex = node.snapshotItem(0).cellIndex
-                                    return row.cells[colIndex].textContent
-                                  }
+                                    let getColData = function (col) {
+                                        let exp = `//table[@id='table']//th[a[text()='${col}']]`
+                                        let node = document.evaluate(exp, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+                                        let colIndex = node.snapshotItem(0).cellIndex
+                                        return row.cells[colIndex].textContent
+                                    }
                                     cell.innerHTML = options.renderer.call(this, cell.data, cell, row, getColData)
                                 }
                             })
