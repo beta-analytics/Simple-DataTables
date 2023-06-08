@@ -742,11 +742,11 @@ export class DataTable {
                                     let tableID = this.table.id
                                     let getColData = function (colName) {
                                         let dataList = colName.map((col)=>{
-                                            console.log(tableID)
                                             let exp = `//table[@id='${tableID}']//th[a[text()='${col}']]`
                                             let node = document.evaluate(exp, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
-                                            let index = node.snapshotItem(0).cellIndex
-                                            return row.cells[index].textContent
+
+                                            let index = node.snapshotLength > 0 ? node.snapshotItem(0).cellIndex + 1 : null;
+                                            return row.cells[index - 1].textContent
                                         })
                                         return dataList.join(',')
                                     }
