@@ -648,7 +648,7 @@ export class DataTable {
                     let selected = []
                     data.select.forEach(col => {
                         if (isNaN(col)) {
-                            let indexExpression = `//table[@id='${this.table.id}']//th[a[text()="${col.trim()}"]]`
+                            let indexExpression = `//table[@id='${this.table.id}']//th[a[normalize-space(text())="${col.trim()}"]]`
                             let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
 
                             let index = 0 < nodes.snapshotLength ? nodes.snapshotItem(0).cellIndex + 1 : null
@@ -688,7 +688,7 @@ export class DataTable {
                 data.select.forEach(column => {
                     let col = column
                     if (isNaN(column)) {
-                        let indexExpression = `count(//table/thead/tr/th[a[contains(text(),"${column}")]]/preceding-sibling::th)`
+                        let indexExpression = `count(//table/thead/tr/th[a[normalize-space(text())="${column.trim()}"]]/preceding-sibling::th)`
                         let result = document.evaluate(indexExpression, document, null, XPathResult.NUMBER_TYPE, null)
                         col = result.numberValue
                     }
@@ -747,11 +747,17 @@ export class DataTable {
                         if (this.selectedColumns.includes(i)) {
                             this.columnRenderers.forEach(options => {
                                 if (options.columns.includes(i)) {
-                                    function getColData(col) {
-                                        let exp = `//table[@id='table']//th[a[text()='${col}']]`
-                                        let node = document.evaluate(exp, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
-                                        let colIndex = node.snapshotItem(0).cellIndex
-                                        return row.cells[colIndex].textContent
+                                    let getColData = function (colName) {
+                                            let dataList = colName.map((col)=>{
+    
+                                                for (let temp=0; temp<tHeaders.length; temp++) {
+                                                    if (tHeaders[temp].innerText == col) {
+                                                        let index = temp
+                                                        return row.cells[index].textContent
+                                                    }
+                                                }
+                                            })
+                                            return dataList.join(',')
                                     }
                                     cell.innerHTML = options.renderer.call(this, cell.data, cell, row, getColData)
                                 }
