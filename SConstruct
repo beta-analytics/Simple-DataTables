@@ -34,7 +34,7 @@ def genOpts(**kwargs):
 cjs = Command(
     'dist/cjs/index.mjs',  # export file for scons
     ['src/index.js'],  # source file
-    '/opt/homebrew/bin/esbuild --sourcemap=inline {raw} {opts} --outfile={out} --watch'.format(
+    'esbuild --sourcemap=inline {raw} {opts} --outfile={out} --watch'.format(
         raw  = 'src/index.js',
         opts = genOpts(),
         out  = 'dist/cjs/index.mjs'
@@ -55,7 +55,7 @@ js = Command(
 css = Command(
     'dist/sdt.min.css', # export file for scons
     ['src/style.css'], # source file
-    '/opt/homebrew/bin/esbuild --bundle {raw} --minify --outfile={out}'.format(
+    'esbuild --bundle {raw} --minify --outfile={out}'.format(
         raw  = 'src/style.css',
         out  = 'dist/sdt.min.css'
     )
