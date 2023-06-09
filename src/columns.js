@@ -1,4 +1,4 @@
-import {sortItems} from './helpers'
+import { sortItems } from './helpers'
 
 /**
  * Columns API
@@ -59,12 +59,12 @@ export class Columns {
         // Convert named headers to indexes
         if ('string' === typeof columns[0]) {
             let iMap = Object.fromEntries(
-                dt.options.data.headers.map(function (header, idx) {
+                dt.options.data.headers.map(function(header, idx) {
                     return [header, idx]
                 }),
             )
 
-            columns = columns.map(function (name) {
+            columns = columns.map(function(name) {
                 return iMap[name]
             })
         }
@@ -143,7 +143,8 @@ export class Columns {
         }
     }
 
-    style(style, columns) {
+    style(style, columns, header) {
+        if (header) Object.assign(header.style, style)
         this.dt.data.forEach((row, i) => {
             if (columns.length) {
                 Object.assign(row.cells[columns].style, style)
@@ -152,10 +153,13 @@ export class Columns {
     }
 
     align(align, columns, header) {
-        header.style.textAlign = align
-        this.dt.data.forEach((row, i) => {
-            row.cells[columns].style.textAlign = align
-        })
+        if (header) header.style.textAlign = align
+
+        if (columns.length) {
+            this.dt.data.forEach((row, i) => {
+                row.cells[columns].style.textAlign = align
+            })
+        }
     }
 
     /**
@@ -359,7 +363,7 @@ export class Columns {
 
         // If there is a filter for this column, apply it instead of sorting
         const filterTerms = dt.options.filters &&
-              dt.options.filters[dt.headers[column].textContent]
+            dt.options.filters[dt.headers[column].textContent]
         if (filterTerms && 0 !== filterTerms.length) {
             this.filter(column, dir, init, filterTerms)
             return
@@ -388,7 +392,7 @@ export class Columns {
                 let num
                 if (parseFunction) {
                     num = parseFunction(content)
-                } else if ('string'===typeof content) {
+                } else if ('string' === typeof content) {
                     num = content.replace(/(\$|,|\s|%)/g, '')
                 } else {
                     num = content
@@ -401,7 +405,7 @@ export class Columns {
                     }
                 } else {
                     alpha[a++] = {
-                        value: 'string'===typeof content ? content.toLowerCase() : content,
+                        value: 'string' === typeof content ? content.toLowerCase() : content,
                         row: tr,
                     }
                 }

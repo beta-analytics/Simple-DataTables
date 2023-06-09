@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 /* eslint-disable no-restricted-syntax */
 import { Rows } from './rows'
 import { Columns } from './columns'
@@ -647,12 +648,10 @@ export class DataTable {
                     let selected = []
                     data.select.forEach(col => {
                         if (isNaN(col)) {
-                            console.log(col)
                             let indexExpression = `//table[@id='${this.table.id}']//th[a[text()="${col}"]]`
                             let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
 
                             let index = 0 < nodes.snapshotLength ? nodes.snapshotItem(0).cellIndex + 1 : null
-                            console.log(index)
                             if (null == index) {
                                 return
                             }
@@ -715,8 +714,15 @@ export class DataTable {
                     if (data.hasOwnProperty('style')) {
                         this.columns().style(data.style, [col])
                     }
+                    if (data.hasOwnProperty('styleHeading')) {
+                        this.columns().style(data.styleHeading, [], this.headers[col])
+                    }
                     if (data.hasOwnProperty('align')) {
-                        this.columns().align(data.align, [col], this.headers[col])
+                        this.columns().align(data.align, [col])
+                    }
+
+                    if (data.hasOwnProperty('alignHeading')) {
+                        this.columns().align(data.alignHeading, [], this.headers[col])
                     }
 
                     if (data.hasOwnProperty('sort') && 1 === data.select.length) {
