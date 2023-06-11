@@ -14,7 +14,7 @@ AddOption(
 OPTS_esbuild = {
     # 'minify'    : True, # Minified version exports x as Datatable
     'bundle'    : True,
-    'format'    : 'esm',
+    'format'    : 'cjs',
     'sourcemap' : GetOption('dev'),
     'watch'     : GetOption('dev'),
     'target'    : 'chrome90,firefox90,edge90,safari15',
@@ -32,12 +32,12 @@ def genOpts(**kwargs):
 
 
 cjs = Command(
-    'dist/cjs/index.mjs',  # export file for scons
+    'dist/cjs/index.cjs',  # export file for scons
     ['src/index.js'],  # source file
-    'esbuild --sourcemap=inline {raw} {opts} --outfile={out} --watch'.format(
+    'esbuild --sourcemap=inline {raw} {opts} --outfile={out}'.format(
         raw  = 'src/index.js',
         opts = genOpts(),
-        out  = 'dist/cjs/index.mjs'
+        out  = 'dist/cjs/index.cjs'
     )
 )
 
@@ -62,6 +62,6 @@ css = Command(
 )
 
 build_css = Command('build-css', [css], 'echo successfully built')
-build_js = Command('build-js', [cjs], 'echo successfully built')
+build_js = Command('build-js', [js], 'echo successfully built')
 
 Default(build_js, build_css)
