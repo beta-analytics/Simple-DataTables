@@ -14,7 +14,6 @@ AddOption(
 OPTS_esbuild = {
     # 'minify'    : True, # Minified version exports x as Datatable
     'bundle'    : True,
-    'format'    : 'esm',
     'sourcemap' : GetOption('dev'),
     'watch'     : GetOption('dev'),
     'target'    : 'chrome90,firefox90,edge90,safari15',
@@ -31,37 +30,48 @@ def genOpts(**kwargs):
     )
 
 
-cjs = Command(
-    'dist/cjs/index.mjs',  # export file for scons
-    ['src/index.js'],  # source file
-    'esbuild --sourcemap=inline {raw} {opts} --outfile={out}'.format(
-        raw  = 'src/index.js',
-        opts = genOpts(),
-        out  = 'dist/cjs/index.mjs',
+build_esm = Command(
+    'dist/std.mjs',
+    ['src/index.js'],
+    'esbuild {raw} {opts} --sourcemap=inline --outfile={out}'.format(
+        raw  = '${SOURCES}',
+        opts = genOpts(format='esm'),
+        out  = '${TARGET}'
+    )
+)
+
+build_cjs = Command(
+    'dist/sdt.cjs',
+    ['src/index.js'],
+    'esbuild {raw} {opts} --sourcemap=inline --outfile={out}'.format(
+        raw  = '${SOURCES}',
+        opts = genOpts(format='cjs'),
+        out  = '${TARGET}'
     )
 )
 
 
-js = Command(
-    'dist/index.js',  # export file for scons
-    [cjs],  # source file
-    'browserify {raw} --minify --standalone simpleDatatables -o {out}'.format( # noqa 401
-        raw  = 'dist/cjs/index.cjs',
-        out  = 'dist/sdt.min.js'
+build_js = Command(
+    'dist/sdt.min.js',
+    [build_cjs],
+    'browserify {raw} --minify --standalone simpleDatatables -o {out}'.format(
+        raw  = '${SOURCES}',
+        out  = '${TARGET}',
     )
 )
 
 
-css = Command(
-    'dist/sdt.min.css', # export file for scons
-    ['src/style.css'], # source file
+build_css = Command(
+    'dist/sdt.min.css',
+    ['src/style.css'],
     'esbuild --bundle {raw} --minify --outfile={out}'.format(
         raw  = 'src/style.css',
-        out  = 'dist/sdt.min.css'
+        out  = '${TARGET}'
     )
 )
 
-build_css = Command('build-css', [css], 'echo successfully built')
-build_js = Command('build-js', [cjs], 'echo successfully built')
+css = Alias('css', build_css)
+js = Alias('js', build_js)
+esm = Alias('esm', build_esm)
 
-Default(build_js, build_css)
+Default(css, js)
