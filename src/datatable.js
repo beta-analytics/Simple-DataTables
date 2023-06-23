@@ -648,10 +648,10 @@ export class DataTable {
                     let selected = []
                     data.select.forEach(col => {
                         if (isNaN(col)) {
-                            let indexExpression = `//table[@id='${this.table.id}']//th[a[text()="${col}"]]`
+                            let indexExpression = `//table[@id='${this.table.id}']//th[a[normalize-space(text())="${col.trim()}"]]`
                             let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
                             let index = 0 < nodes.snapshotLength ? nodes.snapshotItem(0).cellIndex + 1 : null
-
+                            console.log(index)
                             if (null == index) {
                                 return
                             }
