@@ -241,7 +241,7 @@ export class DataTable {
 
         // Per Page Select
         if (options.paging && options.perPageSelect) {
-            let wrap = '<div class="dataTable-dropdown"><label>'
+            let wrap = '<div class="dataTable-dropdown" id="pageselect"><label>'
             wrap += options.labels.perPage
             wrap += '</label></div>'
 
@@ -266,39 +266,42 @@ export class DataTable {
             template = template.replace('{pageselect}', '')
         }
 
+        
+
 
         // Searchable
         if (false != options.searchable) {
-            // Column selector
             let wrap
-            if (options.colSelect) {
-                wrap = `<div class="dataTable-dropdown"><label>${options.labels.colSelect}</label></div>`
-                let colOptions = [...options.colSelect, ...this.headers]
+            // Column selector
+        if (options.colSelect) {
+            wrap = `<div class="dataTable-dropdown" id="colselect"><label>${options.labels.colSelect}</label></div>`
+            let colOptions = [...options.colSelect, ...this.headers]
 
-                // Create the select
-                const select = createElement('select', {
-                    class: 'dataTable-columnselector',
-                })
+            // Create the select
+            const select = createElement('select', {
+                class: 'dataTable-columnselector',
+            })
 
-                // Create the options
-                colOptions.forEach((col, idx) => {
-                    const selected = 0 === idx
-                    let colName = ('All' === col) ? 'All' : col.textContent
-                    const option = new Option(colName, colName, selected, selected)
-                    select.add(option)
-                })
+            // Create the options
+            colOptions.forEach((col, idx) => {
+                const selected = 0 === idx
+                let colName = ('All' === col) ? 'All' : col.textContent
+                const option = new Option(colName, colName, selected, selected)
+                select.add(option)
+            })
 
-                // Custom label
-                wrap = wrap.replace('{colselect}', select.outerHTML)
+            // Custom label
+            wrap = wrap.replace('{colselect}', select.outerHTML)
 
-                // Selector placement
-                template = template.replace('{colselect}', '')
-            } else {
-                template = template.replace('{colSelect}', '')
-            }
+            // Selector placement
+            template = template.replace('{colselect}', '')
+        } else {
+            template = template.replace('{colSelect}', '')
+        }
+
 
             const form =
-                `<div class='dataTable-search'>${wrap}<input class='dataTable-input' type='search' placeholder='${options.labels.placeholder}' type='text'></div>`
+                `<div class='dataTable-search' id='search'>${wrap}<input class='dataTable-input' type='search' placeholder='${options.labels.placeholder}' type='text'></div>`
 
             // Search input placement
             template = template.replace('{search}', form)
