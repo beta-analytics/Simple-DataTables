@@ -241,7 +241,7 @@ export class DataTable {
 
         // Per Page Select
         if (options.paging && options.perPageSelect) {
-            let wrap = '<div class="dataTable-dropdown" id="pageselect"><label>'
+            let wrap = '<div class="dataTable-dropdown" data-testid="pageselect"><label>'
             wrap += options.labels.perPage
             wrap += '</label></div>'
 
@@ -274,7 +274,7 @@ export class DataTable {
             let wrap
             // Column selector
         if (options.colSelect) {
-            wrap = `<div class="dataTable-dropdown" id="colselect"><label>${options.labels.colSelect}</label></div>`
+            wrap = `<div class="dataTable-dropdown" data-testid="colselect"><label>${options.labels.colSelect}</label></div>`
             let colOptions = [...options.colSelect, ...this.headers]
 
             // Create the select
@@ -301,7 +301,7 @@ export class DataTable {
 
 
             const form =
-                `<div class='dataTable-search' id='search'>${wrap}<input class='dataTable-input' type='search' placeholder='${options.labels.placeholder}' type='text'></div>`
+                `<div class='dataTable-search' data-testid='search'>${wrap}<input class='dataTable-input' type='search' placeholder='${options.labels.placeholder}' type='text'></div>`
 
             // Search input placement
             template = template.replace('{search}', form)
@@ -323,6 +323,7 @@ export class DataTable {
         })
         const paginator = createElement('ul', {
             class: 'dataTable-pagination-list',
+            
         })
         paginatorWrapper.appendChild(paginator)
 
@@ -654,7 +655,6 @@ export class DataTable {
                             let indexExpression = `//table[@id='${this.table.id}']//th[a[normalize-space(text())="${col.trim()}"]]`
                             let nodes = document.evaluate(indexExpression, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
                             let index = 0 < nodes.snapshotLength ? nodes.snapshotItem(0).cellIndex + 1 : null
-                            console.log(index)
                             if (null == index) {
                                 return
                             }
