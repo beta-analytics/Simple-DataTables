@@ -232,6 +232,7 @@ export class DataTable {
         } else {
             template += '<div class="dataTable-container"></div>'
         }
+
         template += '<div class="dataTable-bottom">'
         template += options.layout.bottom
         template += '</div>'
@@ -330,6 +331,16 @@ export class DataTable {
         // Pager(s) placement
         template = template.replace(/\{pager\}/g, paginatorWrapper.outerHTML)
         this.wrapper.innerHTML = template
+
+        // Remove top and bottom child if empty
+        if ('' === options.layout.top) {
+            let dataTableWrapper = document.querySelector('.dataTable-wrapper')
+            dataTableWrapper?.removeChild(dataTableWrapper.querySelector('.dataTable-top'))
+        }
+        if ('' === options.layout.bottom) {
+            let dataTableWrapper = document.querySelector('.dataTable-wrapper')
+            dataTableWrapper?.removeChild(dataTableWrapper.querySelector('.dataTable-bottom'))
+        }
 
         this.container = this.wrapper.querySelector('.dataTable-container')
 
@@ -1492,6 +1503,8 @@ export class DataTable {
 
         return false
     }
+
+    
 
     /**
      * Print the table
