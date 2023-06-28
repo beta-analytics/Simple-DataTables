@@ -237,7 +237,7 @@ export class DataTable {
         template += '</div>'
 
         // Info placement
-        template = template.replace('{info}', options.paging ? '<div class="dataTable-info"></div>' : '')
+        template = template.replace('{info}', options.paging ? '<div class="dataTable-info" data-testid="info"></div>' : '')
 
         // Per Page Select
         if (options.paging && options.perPageSelect) {
@@ -321,9 +321,9 @@ export class DataTable {
         const paginatorWrapper = createElement('nav', {
             class: 'dataTable-pagination',
         })
+        paginatorWrapper.setAttribute('data-testid', 'pager')
         const paginator = createElement('ul', {
             class: 'dataTable-pagination-list',
-            
         })
         paginatorWrapper.appendChild(paginator)
 
