@@ -51,12 +51,50 @@ test.describe('match config with UI', async () => {
         await expect(tr.length).toEqual(defaultConfig.perPage)
     })
 
-    test('table top bar is rendering correctly', async({ page }) => {
-        let topbar = await page.locator('.dataTable-top')
-        if ('' === defaultConfig.layout.top) {
+    test('table top bar is only rendering when layout is present', async({ page })=>{
+        let topbar = await locateElement(page, '.dataTable-top')
+        if (!defaultConfig.layout) {
             await expect(topbar).not.toBeAttached()
         } else {
             await expect(topbar).toBeAttached()
+        }
+    })
+
+    test('table bottom bar is only rendering when layout is present', async({ page })=>{
+        let bottomBar = await locateElement(page, '.dataTable-bottom')
+        if (!defaultConfig.layout) {
+            await expect(bottomBar).not.toBeAttached()
+        } else {
+            await expect(bottomBar).toBeAttached()
+        }
+    })
+
+    test('table top bar is only rendering when layout top is non empty', async({ page })=>{
+        let topbar = await locateElement(page, '.dataTable-top')
+        if (defaultConfig.layout) {
+            if ('' !== defaultConfig.layout.top) {
+                await expect(topbar).toBeAttached()
+            } else {
+                await expect(topbar).not.toBeAttached()
+            }
+        }
+    })
+
+    test('table bottom bar is only rendering when layout bottom is non empty', async({ page })=>{
+        let bottomBar = await locateElement(page, '.dataTable-bottom')
+        if (!defaultConfig.layout) {
+            if ('' !== defaultConfig.layout.bottom) {
+                expect(bottomBar).toBeAttached()
+            } else {
+                expect(bottomBar).not.toBeAttached()
+            }
+        }
+    })
+
+
+    test('table top bar is rendering correct child element as passed with options', async({ page }) => {
+        let topbar = await page.locator('.dataTable-top')
+        if (defaultConfig.layout && '' !== defaultConfig.layout.top) {
             let topLayout = defaultConfig.layout.top
             let topLayoutArr = topLayout.replaceAll('}{', ' ').replace(/{|}/g, '').split(' ')
             for (let i=0; i<topLayoutArr.length; i++) {
@@ -65,12 +103,9 @@ test.describe('match config with UI', async () => {
         }
     })
 
-    test('table bottom bar is rendering correctly', async({ page }) => {
+    test('table bottom bar is rendering correct child elements as passed with options', async({ page }) => {
         let bottomBar = await locateElement(page, '.dataTable-bottom')
-        if ('' === defaultConfig.layout.bottom) {
-            await expect(bottomBar).not.toBeAttached()
-        } else {
-            await expect(bottomBar).toBeAttached()
+        if (defaultConfig.layout) {
             let bottomLayout = defaultConfig.layout.bottom
             let bottomLayoutArr = bottomLayout.replaceAll('}{', ' ').replace(/{|}/g, '').split(' ')
             for (let i=0; i<bottomLayoutArr.length; i++) {
