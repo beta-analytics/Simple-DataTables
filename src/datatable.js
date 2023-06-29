@@ -332,12 +332,17 @@ export class DataTable {
         template = template.replace(/\{pager\}/g, paginatorWrapper.outerHTML)
         this.wrapper.innerHTML = template
 
-        // Remove top and bottom child if empty
-        if ('' === options.layout.top) {
+        // Remove top and bottom child if empty || no layout itself
+        if (!defaultConfig.layout) {
             this.wrapper.removeChild(this.wrapper.firstChild)
-        }
-        if ('' === options.layout.bottom) {
             this.wrapper.removeChild(this.wrapper.lastChild)
+        } else {
+            if ('' === options.layout.top) {
+                this.wrapper.removeChild(this.wrapper.firstChild)
+            }
+            if ('' === options.layout.bottom) {
+                this.wrapper.removeChild(this.wrapper.lastChild)
+            }
         }
 
         this.container = this.wrapper.querySelector('.dataTable-container')
