@@ -334,12 +334,10 @@ export class DataTable {
 
         // Remove top and bottom child if empty
         if ('' === options.layout.top) {
-            let dataTableWrapper = document.querySelector('.dataTable-wrapper')
-            dataTableWrapper?.removeChild(dataTableWrapper.querySelector('.dataTable-top'))
+            this.wrapper.removeChild(this.wrapper.firstChild)
         }
         if ('' === options.layout.bottom) {
-            let dataTableWrapper = document.querySelector('.dataTable-wrapper')
-            dataTableWrapper?.removeChild(dataTableWrapper.querySelector('.dataTable-bottom'))
+            this.wrapper.removeChild(this.wrapper.lastChild)
         }
 
         this.container = this.wrapper.querySelector('.dataTable-container')
