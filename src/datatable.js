@@ -274,6 +274,7 @@ export class DataTable {
         if (false != options.searchable) {
             let wrap
             // Column selector
+        if (options.layout.top.includes('{colselect}')) {
         if (options.colSelect) {
             wrap = `<div class="dataTable-dropdown" data-testid="colselect"><label>${options.labels.colSelect}</label></div>`
             let colOptions = [...options.colSelect, ...this.headers]
@@ -299,10 +300,12 @@ export class DataTable {
         } else {
             template = template.replace('{colSelect}', '')
         }
+    }
 
 
-            const form =
-                `<div class='dataTable-search' data-testid='search'>${wrap}<input class='dataTable-input' type='search' placeholder='${options.labels.placeholder}' type='text'></div>`
+    
+            let form =
+                `<div class='dataTable-search' data-testid='search'>${wrap ? wrap : ''}<input class='dataTable-input' type='search' placeholder='${options.labels.placeholder}' type='text'></div>`
 
             // Search input placement
             template = template.replace('{search}', form)
