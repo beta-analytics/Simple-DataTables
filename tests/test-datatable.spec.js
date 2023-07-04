@@ -10,7 +10,7 @@ async function locateElement(root, selector) {
 test.describe('datatable test', async () => {
 
     let page
-    test.describe.serial('tests for topbar', async () => {
+    test.describe.serial('topbar (dataTable-top) dependent test cases', async () => {
 
         test.beforeAll(async ({ browser }) => {
             let context = await browser.newContext()
@@ -52,19 +52,23 @@ test.describe('datatable test', async () => {
             }
         })
 
-        test('is searchbar present when searchale is true and placeholder is correct', async function () {
+        test('searchbar is present only when searchable is true', async () => {
             let searchBar = await locateElement(page, '.dataTable-input')
             if (defaultConfig.searchable) {
                 await expect(searchBar).toBeAttached() // assert whether the element is visible
-                await expect(await (searchBar.getAttribute('placeholder'))).toEqual(defaultConfig.labels.placeholder) // to assert the placeholder
             } else {
                 await expect(searchBar).not.toBeAttached() // assert the input is not in existence
             }
         })
 
+        test('is placeholder for searchbar correct', async () => {
+            let searchBar = await locateElement(page, '.dataTable-input')
+            await expect(await (searchBar.getAttribute('placeholder'))).toEqual(defaultConfig.labels.placeholder) // to assert the placeholder
+        })
+
     })
 
-    test.describe.serial('tests for bottom bar', async ()=>{
+    test.describe.serial('bottombar (dataTable-bottom) dependent test cases', async ()=>{
 
         test.beforeAll(async ({ browser }) => {
             let context = await browser.newContext()
@@ -97,7 +101,6 @@ test.describe('datatable test', async () => {
 
         test('table bottom bar is rendering correct child elements as passed with options', async () => {
             let bottombar = await locateElement(page, '.dataTable-bottom', 'bottombar')
-
             let bottomLayout = defaultConfig.layout.bottom
             let bottomLayoutArr = bottomLayout.replaceAll('}{', ' ').replace(/{|}/g, '').split(' ')
             for (let i = 0; i < bottomLayoutArr.length; i++) {
@@ -105,16 +108,18 @@ test.describe('datatable test', async () => {
             }
         })
 
+        test('is info text correct', async () => {
+            let infoLabel = await locateElement(page, '.dataTable-info')
+            let tr = await page.$$('#table tbody tr')
+            await expect(await (infoLabel.textContent())).toEqual(`Showing 1 to ${tr.length} of 30 entries`)
+        })
+
     })
 
     test.describe.serial('match config with UI', async () => {
-        // test.describe.configure({ mode: 'serial' });
-        test.beforeAll(async ({ browser }) => {
+        test.beforeEach(async ({ browser }) => {
             let context = await browser.newContext()
             page = await context.newPage()
-        })
-
-        test.beforeEach(async () => {
             await page.goto(testConfigs.url)
         })
 
@@ -131,12 +136,6 @@ test.describe('datatable test', async () => {
             }
         })
 
-        test('is info text correct', async () => {
-            let infoLabel = await locateElement(page, '.dataTable-info')
-            let tr = await page.$$('#table tbody tr')
-            await expect(await (infoLabel.textContent())).toEqual(`Showing 1 to ${tr.length} of 30 entries`)
-        })
-
         test('No entries found', async () => {
             let searchBar = await locateElement(page, '.dataTable-input')
             await searchBar.fill('jfejfkl') // Intentionally wrong value so that the search breaks
@@ -149,6 +148,26 @@ test.describe('datatable test', async () => {
             let tr = await page.$$('#table tbody tr')
             await expect(await (tr.length)).toEqual(defaultConfig.perPage)
         })
+
+        test('perpageselect dropdown has options', async () => {
+            let perPageSelector = await page.$$('.dataTable-selector option')
+            for (let i=0; i<perPageSelector.length; i++) {
+                expect(parseInt(await perPageSelector[i].getAttribute('value'))).toEqual(defaultConfig.perPageSelect[i])
+            }
+        })
+
+        test('is perpage dropdown working fine', async () => {
+            let perPageSelector = await locateElement(page, '.dataTable-selector')
+            let options = await locateElement(perPageSelector, 'option')
+            let tr = await page.$$('#table tbody tr')
+
+            for (let i=0; i<options.length; i++) {
+                await perPageSelector.selectOption(options[i])
+                await expect(await (tr.length)).toEqual(await options[i].value)
+            }
+        })
+
+        
 
     })
 
