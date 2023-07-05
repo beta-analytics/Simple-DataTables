@@ -22,6 +22,11 @@ test.describe('datatable test', async () => {
             browser.close()
         })
 
+        test('api test', async () => {
+            let res = await page.request.get('http://127.0.0.1:8000')
+            await expect(res).toBeOK()
+        })
+
         test('table top bar is only rendering when layout is present', async () => {
             let topbar = await locateElement(page, '.dataTable-top')
             if (!defaultConfig.layout) {
@@ -55,7 +60,7 @@ test.describe('datatable test', async () => {
         test('searchbar is present only when searchable is true', async () => {
             let searchBar = await locateElement(page, '.dataTable-input')
             if (defaultConfig.searchable) {
-                await expect(searchBar).toBeAttached() // assert whether the element is visible
+                await expect(searchBar).toBeAttached() // assert the element is visible
             } else {
                 await expect(searchBar).not.toBeAttached() // assert the input is not in existence
             }
@@ -94,7 +99,7 @@ test.describe('datatable test', async () => {
             let bottombar = await locateElement(page, '.dataTable-bottom', 'bottombar')
             if ('' !== defaultConfig.layout.bottom) {
                 await expect(bottombar).toBeAttached()
-            } else {
+            } else {l
                 await expect(bottombar).not.toBeAttached()
             }
         })
@@ -163,11 +168,9 @@ test.describe('datatable test', async () => {
 
             for (let i=0; i<options.length; i++) {
                 await perPageSelector.selectOption(options[i])
-                await expect(await (tr.length)).toEqual(await options[i].value)
+                expect(await (tr.length)).toEqual(await options[i].value)
             }
         })
-
-        
 
     })
 
