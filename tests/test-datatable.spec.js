@@ -71,6 +71,15 @@ test.describe('datatable test', async () => {
             await expect(await (searchBar.getAttribute('placeholder'))).toEqual(defaultConfig.labels.placeholder) // to assert the placeholder
         })
 
+        test('are the options shown correct in colsearch dropdown', async () => {
+            let headers = await page.$$('#table thead tr th')
+            let dropdownOpts = await page.$$('.dataTable-columnselector option')
+
+            for (let i=0; i<headers.length; i++) {
+                await expect(await dropdownOpts[i+1].textContent()).toEqual(await headers[i].textContent())
+            }
+        })
+
     })
 
     test.describe.serial('bottombar (dataTable-bottom) dependent test cases', async ()=>{
