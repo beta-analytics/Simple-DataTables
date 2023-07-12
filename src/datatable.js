@@ -996,7 +996,7 @@ export class DataTable {
      * @param  {string} query
      * @return {void}
      */
-    search(query, cols) {
+    search(query, cols=null) {
         if (!this.hasRows) return false
 
         query = query.toLowerCase()
@@ -1017,8 +1017,8 @@ export class DataTable {
 
         // find selected column's index
         let columnIndex
-        if ('All' == cols) {
-            columnIndex = cols
+        if ('All' == cols || null == cols) {
+            columnIndex = 'All'
         } else {
             Array.from(this.headers).forEach((col, idx) => {
                 if (col.textContent === cols) {
