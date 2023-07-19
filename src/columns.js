@@ -146,7 +146,7 @@ export class Columns {
     style(style, columns, header) {
         if (header) Object.assign(header.style, style)
         this.dt.data.forEach((row, i) => {
-            if (columns.length) {
+            if (columns.length != 0) {
                 Object.assign(row.cells[columns].style, style)
             }
         })
