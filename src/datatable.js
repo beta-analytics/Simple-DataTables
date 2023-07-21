@@ -738,7 +738,7 @@ export class DataTable {
                         this.columns().style(data.styleHeading, [], this.headers[col])
                     }
                     if (data.hasOwnProperty('align')) {
-                        this.columns().align(data.align, [col])
+                        this.columns().align(data.align, [col], this.headers[col])
                     }
 
                     if (data.hasOwnProperty('alignHeading')) {
