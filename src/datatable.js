@@ -225,7 +225,7 @@ export class DataTable {
 
         // Template for custom layouts
         template += '<div class="dataTable-top">'
-        template += options.layout.top
+        template += options.layout?.top ? options.layout.top : ''
         template += '</div>'
         if (options.scrollY.length) {
             template += `<div class='dataTable-container' style='height: ${options.scrollY}; overflow-Y: auto;'></div>`
@@ -234,7 +234,7 @@ export class DataTable {
         }
 
         template += '<div class="dataTable-bottom">'
-        template += options.layout.bottom
+        template += options.layout?.bottom ? options.layout.bottom : ''
         template += '</div>'
 
         // Info placement
