@@ -266,41 +266,39 @@ export class DataTable {
         } else {
             template = template.replace('{pageselect}', '')
         }
-
-        
-
-
         // Searchable
         if (false != options.searchable) {
             let wrap
             // Column selector
-        if (options.layout.top.includes('{colselect}')) {
-        if (options.colSelect) {
-            wrap = `<div class="dataTable-dropdown" data-testid="colselect"><label>${options.labels.colSelect}</label></div>`
-            let colOptions = [...options.colSelect, ...this.headers]
+            if (options.layout.top) {
+                if (options.layout.top.includes('{colselect}')) {
+                    if (options.colSelect) {
+                        wrap = `<div class="dataTable-dropdown" data-testid="colselect"><label>${options.labels.colSelect}</label></div>`
+                        let colOptions = [...options.colSelect, ...this.headers]
 
-            // Create the select
-            const select = createElement('select', {
-                class: 'dataTable-columnselector',
-            })
+                        // Create the select
+                        const select = createElement('select', {
+                            class: 'dataTable-columnselector',
+                        })
 
-            // Create the options
-            colOptions.forEach((col, idx) => {
-                const selected = 0 === idx
-                let colName = ('All' === col) ? 'All' : col.textContent
-                const option = new Option(colName, colName, selected, selected)
-                select.add(option)
-            })
+                        // Create the options
+                        colOptions.forEach((col, idx) => {
+                            const selected = 0 === idx
+                            let colName = ('All' === col) ? 'All' : col.textContent
+                            const option = new Option(colName, colName, selected, selected)
+                            select.add(option)
+                        })
 
-            // Custom label
-            wrap = wrap.replace('{colselect}', select.outerHTML)
+                        // Custom label
+                        wrap = wrap.replace('{colselect}', select.outerHTML)
 
-            // Selector placement
-            template = template.replace('{colselect}', '')
-        } else {
-            template = template.replace('{colSelect}', '')
-        }
-    }
+                        // Selector placement
+                        template = template.replace('{colselect}', '')
+                    } else {
+                        template = template.replace('{colSelect}', '')
+                    }
+                }
+            }
 
 
     
