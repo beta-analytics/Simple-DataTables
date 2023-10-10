@@ -725,8 +725,26 @@ export class DataTable {
                     }
 
                     if (data.hasOwnProperty('hidden')) {
-                        if (false !== data.hidden) {
-                            this.columns().hide([col])
+                        if ('number' == typeof(data.hidden)) {
+                            let x = window.matchMedia(`(max-width: ${data.hidden}px)`)
+                            let hideOnScreen = () => {
+                                if (x.matches) {
+                                    this.columns().hide([col])
+                                } else {
+                                    this.columns().show([col])
+                                }
+                            }
+
+                            hideOnScreen()
+
+                            x.addEventListener('change', () => {
+                                hideOnScreen()
+                            })
+
+                        } else {
+                            if (false !== data.hidden) {
+                                this.columns().hide([col])
+                            }
                         }
                     }
                     if (data.hasOwnProperty('style')) {
